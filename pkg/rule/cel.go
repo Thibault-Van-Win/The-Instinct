@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/checker/decls"
 )
 
 type CelRule struct {
@@ -19,10 +18,8 @@ func NewCelRule(expression string) *CelRule {
 	}
 
 	env, _ := cel.NewEnv(
-		cel.Declarations(
-			decls.NewVar("severity", decls.String),
-			decls.NewVar("tags", decls.NewListType(decls.String)),
-		),
+		cel.Variable("severity", cel.StringType),
+		cel.Variable("tags", cel.ListType(cel.StringType)),
 	)
 
 	ast, iss := env.Compile(instance.Expression)
