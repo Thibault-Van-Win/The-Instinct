@@ -13,7 +13,7 @@ func main() {
 	// Parse a reflex
 	reflex := &reflex.Reflex{
 		Name: "test",	
-		Rule: &rule.CelRule{},
+		Rule: rule.NewCelRule("severity == 'high' && tags.exists(tag, tag == 'ransomware')"),
 		Actions: []action.Action{action.PrintAction()},
 	}
 
@@ -31,7 +31,7 @@ func main() {
 
 	// Check if the Reflex is needed
 	ok, _ := reflex.Match(alert)
-	if  ok {
+	if ok {
 		reflex.Do()	
 	}
 }
