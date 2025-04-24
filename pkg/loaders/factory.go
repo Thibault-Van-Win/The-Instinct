@@ -10,8 +10,7 @@ import (
 type LoaderType string
 
 const (
-	YAMLLoaderType     LoaderType = "yaml"
-	PostgresLoaderType LoaderType = "postgres"
+	YAMLLoader LoaderType = "yaml"
 )
 
 // LoaderFactory creates rule loaders based on type
@@ -29,7 +28,7 @@ func NewLoaderFactory(registry *action.ActionRegistry) *LoaderFactory {
 // CreateLoader creates a rule loader based on type and configuration
 func (f *LoaderFactory) CreateLoader(loaderType LoaderType, config map[string]any) (RuleLoader, error) {
 	switch loaderType {
-	case YAMLLoaderType:
+	case YAMLLoader:
 		directory, ok := config["directory"].(string)
 		if !ok {
 			return nil, fmt.Errorf("yaml loader requires a directory")

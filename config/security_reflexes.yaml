@@ -4,9 +4,17 @@
     - type: print
       params:
         message: "Ransomware detected! Initiating response..."
+
 - name: suspicious-login-detector
   expression: "severity == 'medium' && tags.exists(tag, tag == 'suspicious-login')"
   actions:
     - type: print
       params:
         message: "Suspicious login detected!"
+
+- name: Auto-escalate-urgent
+  expression: "tags.exists(tag, tag == 'urgent')"
+  actions:
+    - type: print
+      params:
+        message: "Automatically escalating urgent event into case"

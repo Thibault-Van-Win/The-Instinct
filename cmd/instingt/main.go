@@ -22,7 +22,7 @@ func main() {
 	system := instinct.New(registry)
 
 	// Load reflexes from YAML files
-	if err := system.LoadReflexes(loaders.YAMLLoaderType, map[string]any{
+	if err := system.LoadReflexes(loaders.YAMLLoader, map[string]any{
 		"directory": "./config",
 	}); err != nil {
 		log.Fatalf("Failed to load reflexes from YAML: %v", err)
