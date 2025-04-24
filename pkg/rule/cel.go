@@ -9,7 +9,7 @@ import (
 
 type CelRule struct {
 	Expression string
-	program cel.Program
+	program    cel.Program
 }
 
 func NewCelRule(expression string) *CelRule {
@@ -24,7 +24,7 @@ func NewCelRule(expression string) *CelRule {
 
 	ast, iss := env.Compile(instance.Expression)
 	if iss.Err() != nil {
-		log.Fatalf("Failed to compile cel rule expression: %s", instance.Expression)	
+		log.Fatalf("Failed to compile cel rule expression: %s", instance.Expression)
 	}
 
 	// Create an evaluable instance of the AST
@@ -46,7 +46,7 @@ func (cr *CelRule) Match(data map[string]any) (bool, error) {
 
 	if val, ok := out.Value().(bool); ok && val {
 		return true, nil
-	} 
+	}
 
 	// The rule dit not match
 	return false, nil

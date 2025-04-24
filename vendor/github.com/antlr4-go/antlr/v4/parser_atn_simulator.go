@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-var ()
-
 // ClosureBusy is a store of ATNConfigs and is a tiny abstraction layer over
 // a standard JStore so that we can use Lazy instantiation of the JStore, mostly
 // to avoid polluting the stats module with a ton of JStore instances with nothing in them.

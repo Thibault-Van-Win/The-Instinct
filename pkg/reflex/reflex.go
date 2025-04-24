@@ -16,9 +16,17 @@ func (r *Reflex) Match(data map[string]any) (bool, error) {
 }
 
 func (r *Reflex) Do() error {
-	for _, action := range r.Actions {
-		action.Do()
+	for _, act := range r.Actions {
+		act.Do()
 	}
 
 	return nil
+}
+
+func NewReflex(name string, rule rule.Rule, actions []action.Action) *Reflex {
+	return &Reflex{
+		Name:    name,
+		Rule:    rule,
+		Actions: actions,
+	}
 }

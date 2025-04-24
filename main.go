@@ -2,22 +2,33 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
 )
 
 func main() {
-	// Parse a reflex
-	reflex := &reflex.Reflex{
-		Name: "test",	
-		Rule: rule.NewCelRule("severity == 'high' && tags.exists(tag, tag == 'ransomware')"),
-		Actions: []action.Action{action.PrintAction()},
+	// Create action registry
+	registry := action.NewActionRegistry()
+
+	// Register standard actions
+	registry.RegisterStandardActions()
+
+	// Create a new instinct system
+	system := instinct.New(registry)
+
+	// Load reflexes from YAML files
+	if err := system.LoadReflexes(loaders.YAMLLoaderType, map[string]any{
+		"directory": "./config",
+	}); err != nil {
+		log.Fatalf("Failed to load reflexes from YAML: %v", err)
 	}
 
-	// Mock some input data
+	// Process an incoming alert
 	alertJson := []byte(`{
 		"title": "Ransomware detected",
 		"severity": "high",
@@ -29,9 +40,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Check if the Reflex is needed
-	ok, _ := reflex.Match(alert)
-	if ok {
-		reflex.Do()	
+	// Process the event
+	if err := system.ProcessEvent(alert); err != nil {
+		fmt.Fprintf(os.Stderr, "Error processing event: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Process an incoming alert
+	alertJson = []byte(`{
+		"title": "Someone logged in",
+		"severity": "medium",
+		"tags": ["cloud", "suspicious-login"]
+	}`)
+
+	if err := json.Unmarshal(alertJson, &alert); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := system.ProcessEvent(alert); err != nil {
+		fmt.Fprintf(os.Stderr, "Error processing event: %v\n", err)
+		os.Exit(1)
 	}
 }

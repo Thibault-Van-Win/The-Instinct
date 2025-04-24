@@ -1,0 +1,12 @@
+- name: ransomware-detector
+  expression: "severity == 'high' && tags.exists(tag, tag == 'ransomware')"
+  actions:
+    - type: print
+      params:
+        message: "Ransomware detected! Initiating response..."
+- name: suspicious-login-detector
+  expression: "severity == 'medium' && tags.exists(tag, tag == 'suspicious-login')"
+  actions:
+    - type: print
+      params:
+        message: "Suspicious login detected!"
