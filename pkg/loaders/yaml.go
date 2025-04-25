@@ -52,7 +52,7 @@ func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
 		}
 
 		// Parse the YAML
-		var configs []ReflexConfig
+		var configs []reflex.ReflexConfig
 		if err := yaml.Unmarshal(data, &configs); err != nil {
 			return nil, fmt.Errorf("failed to parse YAML in file %s: %w", filePath, err)
 		}
@@ -71,7 +71,7 @@ func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
 }
 
 // createReflex creates a reflex from a config
-func (l *YAMLFileLoader) createReflex(config ReflexConfig) (*reflex.Reflex, error) {
+func (l *YAMLFileLoader) createReflex(config reflex.ReflexConfig) (*reflex.Reflex, error) {
 	// Create the rule
 	ruleInstance, err := l.RuleRegistry.Create(config.RuleConfig)
 	if err != nil {
