@@ -11,6 +11,7 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
 var (
@@ -18,11 +19,16 @@ var (
 )
 
 func init() {
-	registry := action.NewActionRegistry()
-	registry.RegisterStandardActions()
+	// Create action registry
+	actionRegistry := action.NewActionRegistry()
+	actionRegistry.RegisterStandardActions()
 
-	system = instinct.New(registry)
+	// Create the rule registry
+	ruleRegistry := rule.NewRuleRegistry()
+	ruleRegistry.RegisterStandardRules()
 
+	// Create a new instinct system
+	system = instinct.New(ruleRegistry, actionRegistry)
 	// Load the reflexes
 	if err := system.LoadReflexes(loaders.YAMLLoader, map[string]any{
 		"directory": "./config",

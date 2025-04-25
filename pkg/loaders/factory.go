@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
 // LoaderType represents the type of loader
@@ -15,13 +16,15 @@ const (
 
 // LoaderFactory creates rule loaders based on type
 type LoaderFactory struct {
+	RuleRegistry *rule.RuleRegistry
 	ActionRegistry *action.ActionRegistry
 }
 
 // NewLoaderFactory creates a new loader factory
-func NewLoaderFactory(registry *action.ActionRegistry) *LoaderFactory {
+func NewLoaderFactory(ruleRegistry *rule.RuleRegistry ,actionRegistry *action.ActionRegistry) *LoaderFactory {
 	return &LoaderFactory{
-		ActionRegistry: registry,
+		RuleRegistry: ruleRegistry,
+		ActionRegistry: actionRegistry,
 	}
 }
 
@@ -33,7 +36,7 @@ func (f *LoaderFactory) CreateLoader(loaderType LoaderType, config map[string]an
 		if !ok {
 			return nil, fmt.Errorf("yaml loader requires a directory")
 		}
-		return NewYAMLFileLoader(directory, f.ActionRegistry), nil
+		return NewYAMLFileLoader(directory, f.RuleRegistry, f.ActionRegistry), nil
 
 	default:
 		return nil, fmt.Errorf("unknown loader type: %s", loaderType)

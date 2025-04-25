@@ -5,23 +5,26 @@ import (
 	"os"
 	"path/filepath"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
-	"gopkg.in/yaml.v3"
 )
 
 // YAMLFileLoader loads reflexes from YAML files in a directory
 type YAMLFileLoader struct {
 	Directory      string
+	RuleRegistry *rule.RuleRegistry
 	ActionRegistry *action.ActionRegistry
 }
 
 // NewYAMLFileLoader creates a new YAML file loader
-func NewYAMLFileLoader(directory string, registry *action.ActionRegistry) *YAMLFileLoader {
+func NewYAMLFileLoader(directory string, ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *YAMLFileLoader {
 	return &YAMLFileLoader{
 		Directory:      directory,
-		ActionRegistry: registry,
+		RuleRegistry: ruleRegistry,
+		ActionRegistry: actionRegistry,
 	}
 }
 
@@ -70,7 +73,10 @@ func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
 // createReflex creates a reflex from a config
 func (l *YAMLFileLoader) createReflex(config ReflexConfig) (*reflex.Reflex, error) {
 	// Create the rule
-	ruleInstance := rule.NewCelRule(config.Expression)
+	ruleInstance, err := l.RuleRegistry.Create(config.RuleConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create rule: %v", err)
+	}
 
 	// Create the actions
 	actions := make([]action.Action, 0, len(config.Actions))

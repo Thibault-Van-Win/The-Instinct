@@ -7,6 +7,7 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
 type Instinct struct {
@@ -16,10 +17,10 @@ type Instinct struct {
 }
 
 // New creates and returns a new Instinct instance
-func New(registry *action.ActionRegistry) *Instinct {
+func New(ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *Instinct {
 	return &Instinct{
 		Reflexes:      []reflex.Reflex{},
-		LoaderFactory: loaders.NewLoaderFactory(registry),
+		LoaderFactory: loaders.NewLoaderFactory(ruleRegistry, actionRegistry),
 	}
 }
 
