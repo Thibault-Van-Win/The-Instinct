@@ -25,7 +25,7 @@ func main() {
 	system := instinct.New(ruleRegistry, actionRegistry)
 
 	// Load reflexes from YAML files
-	if err := system.LoadReflexes(loaders.YAMLLoader, map[string]any{
+	if err := system.LoadReflexes(loaders.YAML, map[string]any{
 		"directory": "./config",
 	}); err != nil {
 		log.Fatalf("Failed to load reflexes from YAML: %v", err)

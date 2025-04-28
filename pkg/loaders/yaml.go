@@ -59,7 +59,7 @@ func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
 
 		// Create reflexes from the configs
 		for _, config := range configs {
-			reflex, err := l.createReflex(config)
+			reflex, err := reflex.ReflexFromConfig(config, l.RuleRegistry, l.ActionRegistry)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create reflex from file %s: %w", filePath, err)
 			}
@@ -68,26 +68,4 @@ func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
 	}
 
 	return reflexes, nil
-}
-
-// createReflex creates a reflex from a config
-func (l *YAMLFileLoader) createReflex(config reflex.ReflexConfig) (*reflex.Reflex, error) {
-	// Create the rule
-	ruleInstance, err := l.RuleRegistry.Create(config.RuleConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create rule: %v", err)
-	}
-
-	// Create the actions
-	actions := make([]action.Action, 0, len(config.Actions))
-	for _, actionConfig := range config.Actions {
-		actionInstance, err := l.ActionRegistry.Create(actionConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create action for reflex %s: %w", config.Name, err)
-		}
-		actions = append(actions, actionInstance)
-	}
-
-	// Create the reflex
-	return reflex.NewReflex(config.Name, ruleInstance, actions), nil
 }

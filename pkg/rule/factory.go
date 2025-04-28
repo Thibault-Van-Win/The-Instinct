@@ -3,8 +3,8 @@ package rule
 import "fmt"
 
 type RuleConfig struct {
-	Type   string         `yaml:"type" json:"type"`
-	Params map[string]any `yaml:"params" json:"params"`
+	Type   string         `yaml:"type" json:"type" bson:"type"`
+	Params map[string]any `yaml:"params" json:"params" bson:"params"`
 }
 
 type RuleRegistry struct {

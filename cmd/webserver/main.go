@@ -30,11 +30,15 @@ func init() {
 	// Create a new instinct system
 	system = instinct.New(ruleRegistry, actionRegistry)
 	// Load the reflexes
-	if err := system.LoadReflexes(loaders.YAMLLoader, map[string]any{
-		"directory": "./config",
+	if err := system.LoadReflexes(loaders.MongoDB, map[string]any{
+		"uri": "mongodb://user:secret@localhost:27017",
+		"database": "instinct",
+		"collection": "reflexes",
 	}); err != nil {
-		log.Fatalf("Failed to load reflexes from YAML: %v", err)
+		log.Fatalf("Failed to load reflexes: %v", err)
 	}
+
+	log.Printf("Loaded %d reflexes\n", len(system.Reflexes))
 }
 
 func main() {
