@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"gopkg.in/yaml.v3"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/yaml.v3"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 )
@@ -23,7 +23,7 @@ func main() {
 	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
+
 	// Use the connection string with authentication
 	uri := "mongodb://user:secret@localhost:27017"
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
@@ -59,17 +59,17 @@ func main() {
 	// Insert or update each reflex config
 	for _, config := range configs {
 		filter := bson.M{"name": config.Name}
-		
+
 		// Upsert the docs
 		opts := options.Replace().SetUpsert(true)
-		
+
 		// Use ReplaceOne to either insert a new document or replace an existing one
 		result, err := collection.ReplaceOne(ctx, filter, config, opts)
 		if err != nil {
 			log.Printf("Error upserting reflex %s: %v", config.Name, err)
 			continue
 		}
-		
+
 		if result.UpsertedCount > 0 {
 			log.Printf("Added new reflex: %s", config.Name)
 		} else if result.ModifiedCount > 0 {
@@ -78,9 +78,7 @@ func main() {
 			log.Printf("No changes needed for reflex: %s", config.Name)
 		}
 	}
-	
+
 	log.Println("Database seeding completed successfully")
-
-
 
 }

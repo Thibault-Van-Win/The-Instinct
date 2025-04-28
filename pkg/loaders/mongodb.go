@@ -68,7 +68,7 @@ func (l *MongoDBLoader) LoadReflexes() ([]reflex.Reflex, error) {
 
 	// Create reflexes from the configs
 	for _, config := range configs {
-		reflex, err := reflex.ReflexFromConfig(config, l.RuleRegistry, l.ActionRegistry) 
+		reflex, err := reflex.ReflexFromConfig(config, l.RuleRegistry, l.ActionRegistry)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create reflex from MongoDB document: %w", err)
 		}

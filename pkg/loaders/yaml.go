@@ -15,7 +15,7 @@ import (
 // YAMLFileLoader loads reflexes from YAML files in a directory
 type YAMLFileLoader struct {
 	Directory      string
-	RuleRegistry *rule.RuleRegistry
+	RuleRegistry   *rule.RuleRegistry
 	ActionRegistry *action.ActionRegistry
 }
 
@@ -23,7 +23,7 @@ type YAMLFileLoader struct {
 func NewYAMLFileLoader(directory string, ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *YAMLFileLoader {
 	return &YAMLFileLoader{
 		Directory:      directory,
-		RuleRegistry: ruleRegistry,
+		RuleRegistry:   ruleRegistry,
 		ActionRegistry: actionRegistry,
 	}
 }

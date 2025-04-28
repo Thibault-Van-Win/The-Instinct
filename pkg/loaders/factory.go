@@ -11,20 +11,20 @@ import (
 type LoaderType string
 
 const (
-	YAML LoaderType = "yaml"
+	YAML    LoaderType = "yaml"
 	MongoDB LoaderType = "mongodb"
 )
 
 // LoaderFactory creates rule loaders based on type
 type LoaderFactory struct {
-	RuleRegistry *rule.RuleRegistry
+	RuleRegistry   *rule.RuleRegistry
 	ActionRegistry *action.ActionRegistry
 }
 
 // NewLoaderFactory creates a new loader factory
-func NewLoaderFactory(ruleRegistry *rule.RuleRegistry ,actionRegistry *action.ActionRegistry) *LoaderFactory {
+func NewLoaderFactory(ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *LoaderFactory {
 	return &LoaderFactory{
-		RuleRegistry: ruleRegistry,
+		RuleRegistry:   ruleRegistry,
 		ActionRegistry: actionRegistry,
 	}
 }
@@ -53,7 +53,7 @@ func (f *LoaderFactory) CreateLoader(loaderType LoaderType, config map[string]an
 		if !ok {
 			return nil, fmt.Errorf("mongoDB loader requires a collection name")
 		}
-		
+
 		return NewMongoDBLoader(uri, database, collection, f.RuleRegistry, f.ActionRegistry), nil
 	default:
 		return nil, fmt.Errorf("unknown loader type: %s", loaderType)

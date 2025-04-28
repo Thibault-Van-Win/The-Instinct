@@ -31,8 +31,8 @@ func init() {
 	system = instinct.New(ruleRegistry, actionRegistry)
 	// Load the reflexes
 	if err := system.LoadReflexes(loaders.MongoDB, map[string]any{
-		"uri": "mongodb://user:secret@localhost:27017",
-		"database": "instinct",
+		"uri":        "mongodb://user:secret@localhost:27017",
+		"database":   "instinct",
 		"collection": "reflexes",
 	}); err != nil {
 		log.Fatalf("Failed to load reflexes: %v", err)
@@ -57,7 +57,8 @@ func main() {
 func handleEvent(c echo.Context) error {
 
 	var event map[string]any
-	err := c.Bind(&event); if err != nil {
+	err := c.Bind(&event)
+	if err != nil {
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 

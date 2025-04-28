@@ -15,11 +15,10 @@ type Reflex struct {
 
 // ReflexConfig represents the structure of a reflex configuration
 type ReflexConfig struct {
-	Name       string                `yaml:"name" json:"name" bson:"name"`
-	RuleConfig rule.RuleConfig       `yaml:"rule" json:"rule" bson:"ruleConfig"`
+	Name          string                `yaml:"name" json:"name" bson:"name"`
+	RuleConfig    rule.RuleConfig       `yaml:"rule" json:"rule" bson:"ruleConfig"`
 	ActionConfigs []action.ActionConfig `yaml:"actions" json:"actions" bson:"actionConfigs"`
 }
-
 
 func (r *Reflex) Match(data map[string]any) (bool, error) {
 	return r.Rule.Match(data)
