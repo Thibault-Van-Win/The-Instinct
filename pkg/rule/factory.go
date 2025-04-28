@@ -1,0 +1,47 @@
+package rule
+
+import "fmt"
+
+type RuleConfig struct {
+	Type   string         `yaml:"type" json:"type" bson:"type"`
+	Params map[string]any `yaml:"params" json:"params" bson:"params"`
+}
+
+type RuleRegistry struct {
+	factories map[string]RuleFactory
+}
+
+// RuleFactory is a function that creates a rule from parameters
+type RuleFactory func(params map[string]any) (Rule, error)
+
+// NewRuleRegistry creates a new rule registry
+func NewRuleRegistry() *RuleRegistry {
+	return &RuleRegistry{
+		factories: make(map[string]RuleFactory),
+	}
+}
+
+// Register registers an rule factory
+func (r *RuleRegistry) Register(name string, factory RuleFactory) {
+	r.factories[name] = factory
+}
+
+// Create a Rule from the config
+func (r *RuleRegistry) Create(config RuleConfig) (Rule, error) {
+	factory, ok := r.factories[config.Type]
+	if !ok {
+		return nil, fmt.Errorf("unknown rule type: %s", config.Type)
+	}
+	return factory(config.Params)
+}
+
+func (r *RuleRegistry) RegisterStandardRules() {
+	// Cel rule
+	r.Register("cel", func(params map[string]any) (Rule, error) {
+		expression, ok := params["expression"].(string)
+		if !ok {
+			return nil, fmt.Errorf("print action requires a message parameter")
+		}
+		return NewCelRule(expression), nil
+	})
+}

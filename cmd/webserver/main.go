@@ -11,6 +11,7 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
 var (
@@ -18,17 +19,26 @@ var (
 )
 
 func init() {
-	registry := action.NewActionRegistry()
-	registry.RegisterStandardActions()
+	// Create action registry
+	actionRegistry := action.NewActionRegistry()
+	actionRegistry.RegisterStandardActions()
 
-	system = instinct.New(registry)
+	// Create the rule registry
+	ruleRegistry := rule.NewRuleRegistry()
+	ruleRegistry.RegisterStandardRules()
 
+	// Create a new instinct system
+	system = instinct.New(ruleRegistry, actionRegistry)
 	// Load the reflexes
-	if err := system.LoadReflexes(loaders.YAMLLoader, map[string]any{
-		"directory": "./config",
+	if err := system.LoadReflexes(loaders.MongoDB, map[string]any{
+		"uri":        "mongodb://user:secret@localhost:27017",
+		"database":   "instinct",
+		"collection": "reflexes",
 	}); err != nil {
-		log.Fatalf("Failed to load reflexes from YAML: %v", err)
+		log.Fatalf("Failed to load reflexes: %v", err)
 	}
+
+	log.Printf("Loaded %d reflexes\n", len(system.Reflexes))
 }
 
 func main() {
@@ -47,7 +57,8 @@ func main() {
 func handleEvent(c echo.Context) error {
 
 	var event map[string]any
-	err := c.Bind(&event); if err != nil {
+	err := c.Bind(&event)
+	if err != nil {
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 

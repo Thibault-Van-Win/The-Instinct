@@ -1,6 +1,8 @@
 package reflex
 
 import (
+	"fmt"
+
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
@@ -9,6 +11,13 @@ type Reflex struct {
 	Name    string
 	Rule    rule.Rule
 	Actions []action.Action
+}
+
+// ReflexConfig represents the structure of a reflex configuration
+type ReflexConfig struct {
+	Name          string                `yaml:"name" json:"name" bson:"name"`
+	RuleConfig    rule.RuleConfig       `yaml:"rule" json:"rule" bson:"ruleConfig"`
+	ActionConfigs []action.ActionConfig `yaml:"actions" json:"actions" bson:"actionConfigs"`
 }
 
 func (r *Reflex) Match(data map[string]any) (bool, error) {
@@ -29,4 +38,23 @@ func NewReflex(name string, rule rule.Rule, actions []action.Action) *Reflex {
 		Rule:    rule,
 		Actions: actions,
 	}
+}
+
+func ReflexFromConfig(config ReflexConfig, ruleReg *rule.RuleRegistry, actionReg *action.ActionRegistry) (*Reflex, error) {
+	ruleInstance, err := ruleReg.Create(config.RuleConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create rule: %w", err)
+	}
+
+	// Create the actions
+	actions := make([]action.Action, 0, len(config.ActionConfigs))
+	for _, actionConfig := range config.ActionConfigs {
+		actionInstance, err := actionReg.Create(actionConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create action for reflex %s: %w", config.Name, err)
+		}
+		actions = append(actions, actionInstance)
+	}
+
+	return NewReflex(config.Name, ruleInstance, actions), nil
 }
