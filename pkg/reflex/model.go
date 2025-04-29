@@ -7,17 +7,18 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
+// Domain model for a reflex
 type Reflex struct {
 	Name    string
 	Rule    rule.Rule
 	Actions []action.Action
 }
 
-// ReflexConfig represents the structure of a reflex configuration
+// Domain model for a reflex configuration
 type ReflexConfig struct {
-	Name          string                `yaml:"name" json:"name" bson:"name"`
-	RuleConfig    rule.RuleConfig       `yaml:"rule" json:"rule" bson:"ruleConfig"`
-	ActionConfigs []action.ActionConfig `yaml:"actions" json:"actions" bson:"actionConfigs"`
+	Name          string                `yaml:"name" json:"name"`
+	RuleConfig    rule.RuleConfig       `yaml:"rule" json:"rule"`
+	ActionConfigs []action.ActionConfig `yaml:"actions" json:"actions"`
 }
 
 func (r *Reflex) Match(data map[string]any) (bool, error) {

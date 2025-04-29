@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
+	mongoRepo "github.com/Thibault-Van-Win/The-Instinct/pkg/reflex/mongo"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
@@ -36,7 +36,6 @@ func NewMongoDBLoader(uri, dbName, collName string, ruleRegistry *rule.RuleRegis
 
 // LoadReflexes implements the RuleLoader interface
 func (l *MongoDBLoader) LoadReflexes() ([]reflex.Reflex, error) {
-	var reflexes []reflex.Reflex
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -47,33 +46,18 @@ func (l *MongoDBLoader) LoadReflexes() ([]reflex.Reflex, error) {
 	}
 	defer client.Disconnect(ctx)
 
-	// Ping to verify connection
-	err = client.Ping(ctx, nil)
+	repo := mongoRepo.NewRepository(client.Database("instinct"), l.RuleRegistry, l.ActionRegistry)
+	service := reflex.NewReflexService(repo)
+
+	reflexes, err := service.ListReflexes(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+		return nil, fmt.Errorf("failed to list reflexes: %v", err)
 	}
 
-	collection := client.Database(l.DatabaseName).Collection(l.CollectionName)
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query MongoDB collection: %w", err)
-	}
-	defer cursor.Close(ctx)
-
-	// Decode results into ReflexConfig objects
-	var configs []reflex.ReflexConfig
-	if err := cursor.All(ctx, &configs); err != nil {
-		return nil, fmt.Errorf("failed to decode MongoDB documents: %w", err)
+	var reflexesVal []reflex.Reflex
+	for _, r := range reflexes {
+		reflexesVal = append(reflexesVal, *r)
 	}
 
-	// Create reflexes from the configs
-	for _, config := range configs {
-		reflex, err := reflex.ReflexFromConfig(config, l.RuleRegistry, l.ActionRegistry)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create reflex from MongoDB document: %w", err)
-		}
-		reflexes = append(reflexes, *reflex)
-	}
-
-	return reflexes, nil
+	return reflexesVal, nil
 }
