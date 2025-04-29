@@ -2,10 +2,20 @@ package action
 
 import "fmt"
 
+type PrintAction struct {
+	Type    string
+	Message string
+}
+
 // PrintAction creates a simple action that prints a message
-func PrintAction(message string) Action {
-	return DoFunc(func() error {
-		fmt.Println(message)
-		return nil
-	})
+func (pa *PrintAction) Do() error {
+	fmt.Println(pa.Message)
+	return nil
+}
+
+func NewPrintAction(message string) *PrintAction {
+	return &PrintAction{
+		Type:    "print",
+		Message: message,
+	}
 }

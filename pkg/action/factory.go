@@ -19,7 +19,7 @@ type ActionRegistryOption func(*ActionRegistry)
 type ActionFactory func(params map[string]any) (Action, error)
 
 // NewActionRegistry creates a new action registry
-func NewActionRegistry(opts... ActionRegistryOption) *ActionRegistry {
+func NewActionRegistry(opts ...ActionRegistryOption) *ActionRegistry {
 
 	instance := &ActionRegistry{
 		factories: make(map[string]ActionFactory),
@@ -53,7 +53,7 @@ func (r *ActionRegistry) RegisterStandardActions() {
 		if !ok {
 			return nil, fmt.Errorf("print action requires a message parameter")
 		}
-		return PrintAction(message), nil
+		return NewPrintAction(message), nil
 	})
 }
 
