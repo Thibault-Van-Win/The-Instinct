@@ -140,6 +140,52 @@ func (r *Repository) List(ctx context.Context) ([]*reflex.Reflex, error) {
 	return reflexes, nil
 }
 
+func (r *Repository) Update(ctx context.Context, id string, config reflex.ReflexConfig) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New("invalid ID format")
+	}
+	
+	update := bson.M{
+		"$set": bson.M{
+			"name":          config.Name,
+			"ruleConfig":    config.RuleConfig,
+			"actionConfigs": config.ActionConfigs,
+			"updatedAt":     time.Now(),
+		},
+	}
+	
+	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	if err != nil {
+		return err
+	}
+	
+	if result.MatchedCount == 0 {
+		return errors.New("reflex not found")
+	}
+	
+	return nil
+}
+
+// Delete removes a reflex by its ID
+func (r *Repository) Delete(ctx context.Context, id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New("invalid ID format")
+	}
+	
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	if err != nil {
+		return err
+	}
+	
+	if result.DeletedCount == 0 {
+		return errors.New("reflex not found")
+	}
+	
+	return nil
+}
+
 // Convert a database reflex representation to the domain representation
 func (r *Repository) documentToReflex(doc reflexDocument) (*reflex.Reflex, error) {
 	// Convert rule configuration to actual rule

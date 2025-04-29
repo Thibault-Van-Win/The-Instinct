@@ -73,8 +73,7 @@ func main() {
 		middleware.Recover(),
 	)
 
-	// TODO: is a pointer needed
-	reflexController := api.NewReflexController(*service)
+	reflexController := api.NewReflexController(service)
 	reflexController.Register(e)
 
 	e.POST("/event", handleEvent)

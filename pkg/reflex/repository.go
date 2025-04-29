@@ -16,4 +16,6 @@ type Repository interface {
 	GetByName(ctx context.Context, name string) (*Reflex, error)
 	GetByID(ctx context.Context, id string) (*Reflex, error)
 	List(ctx context.Context) ([]*Reflex, error)
+	Update(ctx context.Context, id string, config ReflexConfig) error
+	Delete(ctx context.Context, id string) error
 }
