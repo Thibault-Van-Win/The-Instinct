@@ -13,14 +13,23 @@ type ActionRegistry struct {
 	factories map[string]ActionFactory
 }
 
+type ActionRegistryOption func(*ActionRegistry)
+
 // ActionFactory is a function that creates an action from parameters
 type ActionFactory func(params map[string]any) (Action, error)
 
 // NewActionRegistry creates a new action registry
-func NewActionRegistry() *ActionRegistry {
-	return &ActionRegistry{
+func NewActionRegistry(opts... ActionRegistryOption) *ActionRegistry {
+
+	instance := &ActionRegistry{
 		factories: make(map[string]ActionFactory),
 	}
+
+	for _, opt := range opts {
+		opt(instance)
+	}
+
+	return instance
 }
 
 // Register registers an action factory
@@ -46,4 +55,16 @@ func (r *ActionRegistry) RegisterStandardActions() {
 		}
 		return PrintAction(message), nil
 	})
+}
+
+func WithStandardActions() ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.RegisterStandardActions()
+	}
+}
+
+func WithActionFactory(name string, factory ActionFactory) ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.Register(name, factory)
+	}
 }

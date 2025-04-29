@@ -11,14 +11,23 @@ type RuleRegistry struct {
 	factories map[string]RuleFactory
 }
 
+type RuleRegistryOption func(*RuleRegistry)
+
 // RuleFactory is a function that creates a rule from parameters
 type RuleFactory func(params map[string]any) (Rule, error)
 
 // NewRuleRegistry creates a new rule registry
-func NewRuleRegistry() *RuleRegistry {
-	return &RuleRegistry{
+func NewRuleRegistry(opts... RuleRegistryOption) *RuleRegistry {
+
+	instance := &RuleRegistry{
 		factories: make(map[string]RuleFactory),
 	}
+
+	for _, opt := range opts {
+		opt(instance)
+	}
+
+	return instance
 }
 
 // Register registers an rule factory
@@ -44,4 +53,16 @@ func (r *RuleRegistry) RegisterStandardRules() {
 		}
 		return NewCelRule(expression), nil
 	})
+}
+
+func WithStandardRules() RuleRegistryOption {
+	return func(rr *RuleRegistry) {
+		rr.RegisterStandardRules()
+	}
+}
+
+func WithRuleFactory(name string, factory RuleFactory) RuleRegistryOption {
+	return func(rr *RuleRegistry) {
+		rr.Register(name, factory)
+	}
 }

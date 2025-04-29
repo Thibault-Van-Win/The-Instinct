@@ -13,13 +13,15 @@ import (
 )
 
 func main() {
-	// Create action registry
-	actionRegistry := action.NewActionRegistry()
-	actionRegistry.RegisterStandardActions()
-
 	// Create the rule registry
-	ruleRegistry := rule.NewRuleRegistry()
-	ruleRegistry.RegisterStandardRules()
+	ruleRegistry := rule.NewRuleRegistry(
+		rule.WithStandardRules(),
+	)
+
+	// Create action registry
+	actionRegistry := action.NewActionRegistry(
+		action.WithStandardActions(),
+	)
 
 	// Create a new instinct system
 	system := instinct.New(ruleRegistry, actionRegistry)
