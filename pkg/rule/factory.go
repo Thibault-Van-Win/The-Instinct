@@ -17,7 +17,7 @@ type RuleRegistryOption func(*RuleRegistry)
 type RuleFactory func(params map[string]any) (Rule, error)
 
 // NewRuleRegistry creates a new rule registry
-func NewRuleRegistry(opts... RuleRegistryOption) *RuleRegistry {
+func NewRuleRegistry(opts ...RuleRegistryOption) *RuleRegistry {
 
 	instance := &RuleRegistry{
 		factories: make(map[string]RuleFactory),

@@ -1,16 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/api"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
+	mongoRepo "github.com/Thibault-Van-Win/The-Instinct/pkg/reflex/mongo"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
@@ -18,7 +25,7 @@ var (
 	system *instinct.Instinct
 )
 
-func init() {
+func main() {
 	// Create the rule registry
 	ruleRegistry := rule.NewRuleRegistry(
 		rule.WithStandardRules(),
@@ -41,15 +48,34 @@ func init() {
 	}
 
 	log.Printf("Loaded %d reflexes\n", len(system.Reflexes))
-}
 
-func main() {
+	// Connect to MongoDB
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://user:secret@localhost:27017"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
+
+	// Create database and collections
+	db := client.Database("instinct")
+
+	// Initialize repository and service (dependency injection)
+	repository := mongoRepo.NewRepository(db, ruleRegistry, actionRegistry)
+	service := reflex.NewReflexService(repository)
+
 	e := echo.New()
 
 	e.Use(
 		middleware.Logger(),
 		middleware.Recover(),
 	)
+
+	// TODO: is a pointer needed
+	reflexController := api.NewReflexController(*service)
+	reflexController.Register(e)
 
 	e.POST("/event", handleEvent)
 

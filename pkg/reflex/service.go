@@ -12,7 +12,7 @@ type ReflexService struct {
 func NewReflexService(repo Repository) *ReflexService {
 	return &ReflexService{
 		repo: repo,
-	}	
+	}
 }
 
 func (s *ReflexService) CreateReflex(ctx context.Context, config ReflexConfig) (string, error) {
@@ -20,23 +20,22 @@ func (s *ReflexService) CreateReflex(ctx context.Context, config ReflexConfig) (
 	if config.Name == "" {
 		return "", errors.New("reflex name cannot be empty")
 	}
-	
+
 	// Validate rule configuration
-	// TODO	
-	
+	// TODO
+
 	// Validate action configurations
-	// TODO	
+	// TODO
 
 	return s.repo.Create(ctx, config)
 }
-
 
 // Retrieve a reflex by name
 func (s *ReflexService) GetReflexByName(ctx context.Context, name string) (*Reflex, error) {
 	if name == "" {
 		return nil, errors.New("reflex name cannot be empty")
 	}
-	
+
 	return s.repo.GetByName(ctx, name)
 }
 
@@ -45,7 +44,7 @@ func (s *ReflexService) GetReflexByID(ctx context.Context, id string) (*Reflex, 
 	if id == "" {
 		return nil, errors.New("reflex ID cannot be empty")
 	}
-	
+
 	return s.repo.GetByID(ctx, id)
 }
 

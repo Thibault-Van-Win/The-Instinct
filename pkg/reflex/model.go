@@ -9,9 +9,9 @@ import (
 
 // Domain model for a reflex
 type Reflex struct {
-	Name    string
-	Rule    rule.Rule
-	Actions []action.Action
+	Name    string          `json:"name"`
+	Rule    rule.Rule       `json:"rule"`
+	Actions []action.Action `json:"actions"`
 }
 
 // Domain model for a reflex configuration
