@@ -3,6 +3,7 @@ package reflex
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 type ReflexService struct {
@@ -22,10 +23,21 @@ func (s *ReflexService) CreateReflex(ctx context.Context, config ReflexConfig) (
 	}
 
 	// Validate rule configuration
-	// TODO
+	if err := config.RuleConfig.Validate(); err != nil {
+		return "", fmt.Errorf("failed to validate rule config: %v", err)
+	}
 
 	// Validate action configurations
-	// TODO
+	var actionConfigErrors []error
+	for _, actionConfig := range config.ActionConfigs {
+		if err := actionConfig.Validate(); err != nil {
+			actionConfigErrors = append(actionConfigErrors, err)
+		}
+	}
+
+	if len(actionConfigErrors) > 0 {
+		return "", fmt.Errorf("failed to validate action configs: %w", errors.Join(actionConfigErrors...))
+	}
 
 	return s.repo.Create(ctx, config)
 }
@@ -65,10 +77,21 @@ func (s *ReflexService) UpdateReflex(ctx context.Context, id string, config Refl
 	}
 	
 	// Validate rule configuration
-	// TODO
+	if err := config.RuleConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate rule config: %v", err)
+	}
 	
 	// Validate action configurations
-	// TODO	
+	var actionConfigErrors []error
+	for _, actionConfig := range config.ActionConfigs {
+		if err := actionConfig.Validate(); err != nil {
+			actionConfigErrors = append(actionConfigErrors, err)
+		}
+	}
+
+	if len(actionConfigErrors) > 0 {
+		return fmt.Errorf("failed to validate action configs: %w", errors.Join(actionConfigErrors...))
+	}
 	
 	return s.repo.Update(ctx, id, config)
 }
