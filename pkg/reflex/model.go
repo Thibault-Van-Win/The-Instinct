@@ -14,13 +14,6 @@ type Reflex struct {
 	Actions []action.Action `json:"actions"`
 }
 
-// Domain model for a reflex configuration
-type ReflexConfig struct {
-	Name          string                `yaml:"name" json:"name"`
-	RuleConfig    rule.RuleConfig       `yaml:"rule" json:"rule"`
-	ActionConfigs []action.ActionConfig `yaml:"actions" json:"actions"`
-}
-
 func (r *Reflex) Match(data map[string]any) (bool, error) {
 	return r.Rule.Match(data)
 }

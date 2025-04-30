@@ -17,26 +17,8 @@ func NewReflexService(repo Repository) *ReflexService {
 }
 
 func (s *ReflexService) CreateReflex(ctx context.Context, config ReflexConfig) (string, error) {
-	// Validate the configuration
-	if config.Name == "" {
-		return "", errors.New("reflex name cannot be empty")
-	}
-
-	// Validate rule configuration
-	if err := config.RuleConfig.Validate(); err != nil {
-		return "", fmt.Errorf("failed to validate rule config: %v", err)
-	}
-
-	// Validate action configurations
-	var actionConfigErrors []error
-	for _, actionConfig := range config.ActionConfigs {
-		if err := actionConfig.Validate(); err != nil {
-			actionConfigErrors = append(actionConfigErrors, err)
-		}
-	}
-
-	if len(actionConfigErrors) > 0 {
-		return "", fmt.Errorf("failed to validate action configs: %w", errors.Join(actionConfigErrors...))
+	if err := config.Validate(); err != nil {
+		return "", fmt.Errorf("reflex config validation failed: %v", err)
 	}
 
 	return s.repo.Create(ctx, config)
@@ -71,27 +53,9 @@ func (s *ReflexService) UpdateReflex(ctx context.Context, id string, config Refl
 		return errors.New("reflex ID cannot be empty")
 	}
 	
-	// Validate the configuration
-	if config.Name == "" {
-		return errors.New("reflex name cannot be empty")
-	}
-	
-	// Validate rule configuration
-	if err := config.RuleConfig.Validate(); err != nil {
-		return fmt.Errorf("failed to validate rule config: %v", err)
-	}
-	
-	// Validate action configurations
-	var actionConfigErrors []error
-	for _, actionConfig := range config.ActionConfigs {
-		if err := actionConfig.Validate(); err != nil {
-			actionConfigErrors = append(actionConfigErrors, err)
-		}
-	}
-
-	if len(actionConfigErrors) > 0 {
-		return fmt.Errorf("failed to validate action configs: %w", errors.Join(actionConfigErrors...))
-	}
+	if err := config.Validate(); err != nil {
+		return fmt.Errorf("failed to validate reflex config: %v", err)
+	}	
 	
 	return s.repo.Update(ctx, id, config)
 }
