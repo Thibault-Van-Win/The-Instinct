@@ -3,6 +3,7 @@ package reflex
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 type ReflexService struct {
@@ -16,16 +17,9 @@ func NewReflexService(repo Repository) *ReflexService {
 }
 
 func (s *ReflexService) CreateReflex(ctx context.Context, config ReflexConfig) (string, error) {
-	// Validate the configuration
-	if config.Name == "" {
-		return "", errors.New("reflex name cannot be empty")
+	if err := config.Validate(); err != nil {
+		return "", fmt.Errorf("reflex config validation failed: %v", err)
 	}
-
-	// Validate rule configuration
-	// TODO
-
-	// Validate action configurations
-	// TODO
 
 	return s.repo.Create(ctx, config)
 }
@@ -59,16 +53,9 @@ func (s *ReflexService) UpdateReflex(ctx context.Context, id string, config Refl
 		return errors.New("reflex ID cannot be empty")
 	}
 	
-	// Validate the configuration
-	if config.Name == "" {
-		return errors.New("reflex name cannot be empty")
-	}
-	
-	// Validate rule configuration
-	// TODO
-	
-	// Validate action configurations
-	// TODO	
+	if err := config.Validate(); err != nil {
+		return fmt.Errorf("failed to validate reflex config: %v", err)
+	}	
 	
 	return s.repo.Update(ctx, id, config)
 }

@@ -2,7 +2,6 @@ package rule
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/google/cel-go/cel"
 )
@@ -12,7 +11,7 @@ type CelRule struct {
 	program    cel.Program
 }
 
-func NewCelRule(expression string) *CelRule {
+func NewCelRule(expression string) (*CelRule, error) {
 	instance := &CelRule{
 		Expression: expression,
 	}
@@ -24,17 +23,17 @@ func NewCelRule(expression string) *CelRule {
 
 	ast, iss := env.Compile(instance.Expression)
 	if iss.Err() != nil {
-		log.Fatalf("Failed to compile cel rule expression: %s", instance.Expression)
+		return nil, fmt.Errorf("type check error for expression %s: %s", instance.Expression, iss.Err())
 	}
 
 	// Create an evaluable instance of the AST
 	prog, err := env.Program(ast)
 	if err != nil {
-		log.Fatalf("Failed to create Program: %v", err)
+		return nil, fmt.Errorf("failed to create Program: %v", err)
 	}
 
 	instance.program = prog
-	return instance
+	return instance, nil
 }
 
 func (cr *CelRule) Match(data map[string]any) (bool, error) {

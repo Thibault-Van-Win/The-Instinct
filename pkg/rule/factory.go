@@ -2,11 +2,6 @@ package rule
 
 import "fmt"
 
-type RuleConfig struct {
-	Type   string         `yaml:"type" json:"type" bson:"type"`
-	Params map[string]any `yaml:"params" json:"params" bson:"params"`
-}
-
 type RuleRegistry struct {
 	factories map[string]RuleFactory
 }
@@ -51,7 +46,7 @@ func (r *RuleRegistry) RegisterStandardRules() {
 		if !ok {
 			return nil, fmt.Errorf("print action requires a message parameter")
 		}
-		return NewCelRule(expression), nil
+		return NewCelRule(expression)
 	})
 }
 
