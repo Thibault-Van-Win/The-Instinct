@@ -18,4 +18,7 @@ type Repository interface {
 	List(ctx context.Context) ([]*Reflex, error)
 	Update(ctx context.Context, id string, config ReflexConfig) error
 	Delete(ctx context.Context, id string) error
+
+	// Close closes the repository and all connections it manages
+	Close(ctx context.Context) error
 }

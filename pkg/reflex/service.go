@@ -16,6 +16,11 @@ func NewReflexService(repo Repository) *ReflexService {
 	}
 }
 
+// Close the repository and all the connections it manages
+func (s *ReflexService) Close(ctx context.Context) error {
+	return s.repo.Close(ctx)
+}
+
 func (s *ReflexService) CreateReflex(ctx context.Context, config ReflexConfig) (string, error) {
 	if err := config.Validate(); err != nil {
 		return "", fmt.Errorf("reflex config validation failed: %v", err)
