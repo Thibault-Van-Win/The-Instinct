@@ -12,7 +12,7 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
 	"github.com/Thibault-Van-Win/The-Instinct/internal/factory"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/api"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/controllers"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
@@ -62,7 +62,7 @@ func main() {
 		middleware.Recover(),
 	)
 
-	reflexController := api.NewReflexController(service)
+	reflexController := controllers.NewReflexController(service)
 	reflexController.Register(e)
 
 	e.POST("/event", handleEvent)
