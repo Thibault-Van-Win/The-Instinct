@@ -35,7 +35,7 @@ func (rc *ReflexConfig) Validate() error {
 
 	if len(actionConfigErrors) > 0 {
 		return fmt.Errorf("failed to validate action configs: %w", errors.Join(actionConfigErrors...))
-	}	
+	}
 
 	return nil
 }

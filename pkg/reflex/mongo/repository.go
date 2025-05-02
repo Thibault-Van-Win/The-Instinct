@@ -145,7 +145,7 @@ func (r *Repository) Update(ctx context.Context, id string, config reflex.Reflex
 	if err != nil {
 		return errors.New("invalid ID format")
 	}
-	
+
 	update := bson.M{
 		"$set": bson.M{
 			"name":          config.Name,
@@ -154,16 +154,16 @@ func (r *Repository) Update(ctx context.Context, id string, config reflex.Reflex
 			"updatedAt":     time.Now(),
 		},
 	}
-	
+
 	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
 	if err != nil {
 		return err
 	}
-	
+
 	if result.MatchedCount == 0 {
 		return errors.New("reflex not found")
 	}
-	
+
 	return nil
 }
 
@@ -173,16 +173,16 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return errors.New("invalid ID format")
 	}
-	
+
 	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
 		return err
 	}
-	
+
 	if result.DeletedCount == 0 {
 		return errors.New("reflex not found")
 	}
-	
+
 	return nil
 }
 
