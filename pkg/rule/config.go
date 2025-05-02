@@ -8,7 +8,7 @@ type RuleConfig struct {
 func (rc *RuleConfig) Validate() error {
 	ruleReg := NewRuleRegistry(
 		WithStandardRules(),
-	)	
+	)
 
 	_, err := ruleReg.Create(*rc)
 

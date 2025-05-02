@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/api"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
@@ -26,6 +27,11 @@ var (
 )
 
 func main() {
+	conf, err := config.Instance()
+	if err != nil {
+		log.Fatalf("failed to retrieve config instance: %v", err)
+	}
+
 	// Create the rule registry
 	ruleRegistry := rule.NewRuleRegistry(
 		rule.WithStandardRules(),
@@ -38,9 +44,15 @@ func main() {
 
 	// Create a new instinct system
 	system = instinct.New(ruleRegistry, actionRegistry)
+
 	// Load the reflexes
+	dbConnString, err := conf.DbConfig.ConnString()
+	if err != nil {
+		log.Fatalf("failed to retrieve the db connection string: %v", err)
+	}
+
 	if err := system.LoadReflexes(loaders.MongoDB, map[string]any{
-		"uri":        "mongodb://user:secret@localhost:27017",
+		"uri":        dbConnString,
 		"database":   "instinct",
 		"collection": "reflexes",
 	}); err != nil {
@@ -53,7 +65,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://user:secret@localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbConnString))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +90,7 @@ func main() {
 
 	e.POST("/event", handleEvent)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", conf.WebServerConfig.Port)))
 }
 
 func handleEvent(c echo.Context) error {

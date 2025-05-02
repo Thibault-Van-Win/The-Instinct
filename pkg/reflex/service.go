@@ -52,11 +52,11 @@ func (s *ReflexService) UpdateReflex(ctx context.Context, id string, config Refl
 	if id == "" {
 		return errors.New("reflex ID cannot be empty")
 	}
-	
+
 	if err := config.Validate(); err != nil {
 		return fmt.Errorf("failed to validate reflex config: %v", err)
-	}	
-	
+	}
+
 	return s.repo.Update(ctx, id, config)
 }
 
@@ -65,6 +65,6 @@ func (s *ReflexService) DeleteReflex(ctx context.Context, id string) error {
 	if id == "" {
 		return errors.New("reflex ID cannot be empty")
 	}
-	
+
 	return s.repo.Delete(ctx, id)
 }

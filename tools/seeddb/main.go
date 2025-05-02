@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/yaml.v3"
 
+	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 )
 
@@ -19,14 +20,22 @@ var (
 )
 
 func main() {
+	conf, err := config.Instance()
+	if err != nil {
+		log.Fatalf("failed to retrieve config: %v", err)
+	}
+
+	dbConnString, err := conf.DbConfig.ConnString()
+	if err != nil {
+		log.Fatalf("failed to retrieve db connection string: %v", dbConnString)
+	}
+
 	log.Println("Seeding MongoDB database")
 	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Use the connection string with authentication
-	uri := "mongodb://user:secret@localhost:27017"
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbConnString))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
