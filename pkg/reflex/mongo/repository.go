@@ -47,6 +47,7 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to mongo db: %v", err)
 	}
+
 	// TODO: where do I close this connection?
 	//defer client.Disconnect(ctx)
 

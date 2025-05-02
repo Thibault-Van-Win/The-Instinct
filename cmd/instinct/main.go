@@ -26,11 +26,16 @@ func main() {
 	// Create a new instinct system
 	system := instinct.New(ruleRegistry, actionRegistry)
 
-	// Load reflexes from YAML files
-	if err := system.LoadReflexes(loaders.YAML, map[string]any{
+	loader, err := loaders.NewLoaderFactory(ruleRegistry, actionRegistry).CreateLoader(loaders.YAML,map[string]any{
 		"directory": "./config",
-	}); err != nil {
-		log.Fatalf("Failed to load reflexes from YAML: %v", err)
+	})
+	if err != nil {
+		log.Fatalf("Failed to create reflex loader: %v", err)
+	}
+
+	// Load reflexes from YAML files
+	if err := system.LoadReflexes(loader); err != nil {
+		log.Fatalf("Failed to load reflexes: %v", err)
 	}
 
 	// Process an incoming alert

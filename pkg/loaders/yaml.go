@@ -1,6 +1,7 @@
 package loaders
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,8 +30,8 @@ func NewYAMLFileLoader(directory string, ruleRegistry *rule.RuleRegistry, action
 }
 
 // LoadReflexes implements the RuleLoader interface
-func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
-	var reflexes []reflex.Reflex
+func (l *YAMLFileLoader) ListReflexes(ctx context.Context) ([]*reflex.Reflex, error) {
+	var reflexes []*reflex.Reflex
 
 	// Read all files in the directory
 	files, err := os.ReadDir(l.Directory)
@@ -63,7 +64,7 @@ func (l *YAMLFileLoader) LoadReflexes() ([]reflex.Reflex, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to create reflex from file %s: %w", filePath, err)
 			}
-			reflexes = append(reflexes, *reflex)
+			reflexes = append(reflexes, reflex)
 		}
 	}
 

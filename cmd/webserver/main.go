@@ -13,7 +13,6 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/api"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
@@ -41,18 +40,18 @@ func main() {
 	// Create a new instinct system
 	system = instinct.New(ruleRegistry, actionRegistry)
 
-	// Load the reflexes
-	if err := system.LoadReflexes(loaders.MongoDB, &conf.DbConfig); err != nil {
-		log.Fatalf("Failed to load reflexes: %v", err)
-	}
-	log.Printf("Loaded %d reflexes\n", len(system.Reflexes))
-
 	// Initialize repository and service (dependency injection)
 	repository, err := factory.NewReflexRepository(&conf.DbConfig, ruleRegistry, actionRegistry)
 	if err != nil {
 		log.Fatalf("Failed to create reflex repository: %v", err)
 	}
 	service := reflex.NewReflexService(repository)
+
+	// Load the reflexes
+	if err := system.LoadReflexes(service); err != nil {
+		log.Fatalf("Failed to load reflexes: %v", err)
+	}
+	log.Printf("Loaded %d reflexes\n", len(system.Reflexes))
 
 	e := echo.New()
 

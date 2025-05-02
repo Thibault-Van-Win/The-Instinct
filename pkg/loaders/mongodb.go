@@ -28,7 +28,7 @@ func NewMongoDBLoader(dbConfig *config.DatabaseConfig, ruleRegistry *rule.RuleRe
 }
 
 // LoadReflexes implements the RuleLoader interface
-func (l *MongoDBLoader) LoadReflexes() ([]reflex.Reflex, error) {
+func (l *MongoDBLoader) ListReflexes(ctx context.Context) ([]*reflex.Reflex, error) {
 
 	repo, err := mongoRepo.NewRepository(l.dbConfig, l.RuleRegistry, l.ActionRegistry)
 	if err != nil {
@@ -36,15 +36,5 @@ func (l *MongoDBLoader) LoadReflexes() ([]reflex.Reflex, error) {
 	}
 	service := reflex.NewReflexService(repo)
 
-	reflexes, err := service.ListReflexes(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("failed to list reflexes: %v", err)
-	}
-
-	var reflexesVal []reflex.Reflex
-	for _, r := range reflexes {
-		reflexesVal = append(reflexesVal, *r)
-	}
-
-	return reflexesVal, nil
+	return  service.ListReflexes(context.Background())
 }

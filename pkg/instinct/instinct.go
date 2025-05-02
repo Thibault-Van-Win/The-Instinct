@@ -1,11 +1,11 @@
 package instinct
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/loaders"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
@@ -13,14 +13,17 @@ import (
 type Instinct struct {
 	Reflexes      []reflex.Reflex
 	mu            sync.RWMutex
-	LoaderFactory *loaders.LoaderFactory
+}
+
+// This is implemented by both the loader and repository interface
+type ReflexLister interface {
+	ListReflexes(ctx context.Context) ([]*reflex.Reflex, error)
 }
 
 // New creates and returns a new Instinct instance
 func New(ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *Instinct {
 	return &Instinct{
 		Reflexes:      []reflex.Reflex{},
-		LoaderFactory: loaders.NewLoaderFactory(ruleRegistry, actionRegistry),
 	}
 }
 
@@ -32,23 +35,23 @@ func (i *Instinct) AddReflex(r reflex.Reflex) {
 }
 
 // LoadReflexes loads reflexes using the specified loader
-func (i *Instinct) LoadReflexes(loaderType loaders.LoaderType, config any) error {
-	// Create the loader
-	loader, err := i.LoaderFactory.CreateLoader(loaderType, config)
-	if err != nil {
-		return fmt.Errorf("failed to create loader: %w", err)
-	}
-
-	// Load reflexes
-	reflexes, err := loader.LoadReflexes()
+func (i *Instinct) LoadReflexes(reflexLister ReflexLister) error {
+	
+	reflexes, err := reflexLister.ListReflexes(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to load reflexes: %w", err)
+	}
+
+	// Dereference pointers
+	reflexVals := []reflex.Reflex{}
+	for _, reflexPtr := range reflexes {
+		reflexVals = append(reflexVals, *reflexPtr)
 	}
 
 	// Add the reflexes
 	i.mu.Lock()
 	defer i.mu.Unlock()
-	i.Reflexes = append(i.Reflexes, reflexes...)
+	i.Reflexes = append(i.Reflexes, reflexVals...)
 
 	return nil
 }
