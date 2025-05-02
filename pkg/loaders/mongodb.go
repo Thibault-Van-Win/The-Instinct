@@ -35,6 +35,7 @@ func (l *MongoDBLoader) ListReflexes(ctx context.Context) ([]*reflex.Reflex, err
 		return nil, fmt.Errorf("failed to create reflex repository: %v", err)
 	}
 	service := reflex.NewReflexService(repo)
+	defer service.Close(ctx)
 
 	return  service.ListReflexes(context.Background())
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -46,6 +47,7 @@ func main() {
 		log.Fatalf("Failed to create reflex repository: %v", err)
 	}
 	service := reflex.NewReflexService(repository)
+	defer service.Close(context.Background())
 
 	// Load the reflexes
 	if err := system.LoadReflexes(service); err != nil {

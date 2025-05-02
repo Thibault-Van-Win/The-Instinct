@@ -28,6 +28,7 @@ type reflexDocument struct {
 }
 
 type Repository struct {
+	client *mongo.Client
 	collection     *mongo.Collection
 	ruleRegistry   *rule.RuleRegistry
 	actionRegistry *action.ActionRegistry
@@ -48,9 +49,6 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 		return nil, fmt.Errorf("failed to connect to mongo db: %v", err)
 	}
 
-	// TODO: where do I close this connection?
-	//defer client.Disconnect(ctx)
-
 	// Create database and collections
 	db := client.Database("instinct")
 	collection := db.Collection("reflexes")
@@ -70,10 +68,20 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 	}
 
 	return &Repository{
+		client: client,
 		collection:     collection,
 		ruleRegistry:   ruleReg,
 		actionRegistry: actionReg,
 	}, nil
+}
+
+// Close closes the MongoDB connection
+func (r*Repository) Close(ctx context.Context) error {
+	if r.client != nil {
+		return r.client.Disconnect(ctx)
+	}
+
+	return nil
 }
 
 func (r *Repository) Create(ctx context.Context, config reflex.ReflexConfig) (string, error) {
