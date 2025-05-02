@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -10,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
@@ -31,7 +33,25 @@ type Repository struct {
 	actionRegistry *action.ActionRegistry
 }
 
-func NewRepository(db *mongo.Database, ruleReg *rule.RuleRegistry, actionReg *action.ActionRegistry) *Repository {
+func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, actionReg *action.ActionRegistry) (*Repository, error) {
+	// Connect to MongoDB
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	dbConnString, err := dbConfig.ConnString()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get connection string from config: %v", err)
+	}
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbConnString))
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to mongo db: %v", err)
+	}
+	// TODO: where do I close this connection?
+	//defer client.Disconnect(ctx)
+
+	// Create database and collections
+	db := client.Database("instinct")
 	collection := db.Collection("reflexes")
 
 	// Create indexes for faster lookups
@@ -40,10 +60,10 @@ func NewRepository(db *mongo.Database, ruleReg *rule.RuleRegistry, actionReg *ac
 		Options: options.Index().SetUnique(true),
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := collection.Indexes().CreateOne(ctx, indexModel)
+	_, err = collection.Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		// Index might already exists
 	}
@@ -52,7 +72,7 @@ func NewRepository(db *mongo.Database, ruleReg *rule.RuleRegistry, actionReg *ac
 		collection:     collection,
 		ruleRegistry:   ruleReg,
 		actionRegistry: actionReg,
-	}
+	}, nil
 }
 
 func (r *Repository) Create(ctx context.Context, config reflex.ReflexConfig) (string, error) {

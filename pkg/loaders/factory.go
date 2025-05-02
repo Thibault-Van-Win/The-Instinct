@@ -3,6 +3,7 @@ package loaders
 import (
 	"fmt"
 
+	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
@@ -30,31 +31,24 @@ func NewLoaderFactory(ruleRegistry *rule.RuleRegistry, actionRegistry *action.Ac
 }
 
 // CreateLoader creates a rule loader based on type and configuration
-func (f *LoaderFactory) CreateLoader(loaderType LoaderType, config map[string]any) (RuleLoader, error) {
+func (f *LoaderFactory) CreateLoader(loaderType LoaderType, conf any) (RuleLoader, error) {
 	switch loaderType {
 	case YAML:
-		directory, ok := config["directory"].(string)
+		yamlConf, ok := conf.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("expected a config map")
+		}
+		directory, ok := yamlConf["directory"].(string)
 		if !ok {
 			return nil, fmt.Errorf("yaml loader requires a directory")
 		}
 		return NewYAMLFileLoader(directory, f.RuleRegistry, f.ActionRegistry), nil
 	case MongoDB:
-		uri, ok := config["uri"].(string)
+		dbConfig, ok := conf.(*config.DatabaseConfig)
 		if !ok {
-			return nil, fmt.Errorf("mongoDB loader requires a uri")
+			return nil, fmt.Errorf("expected a pointer to a database config")
 		}
-
-		database, ok := config["database"].(string)
-		if !ok {
-			return nil, fmt.Errorf("mongoDB loader requires a database name")
-		}
-
-		collection, ok := config["collection"].(string)
-		if !ok {
-			return nil, fmt.Errorf("mongoDB loader requires a collection name")
-		}
-
-		return NewMongoDBLoader(uri, database, collection, f.RuleRegistry, f.ActionRegistry), nil
+		return NewMongoDBLoader(dbConfig, f.RuleRegistry, f.ActionRegistry), nil
 	default:
 		return nil, fmt.Errorf("unknown loader type: %s", loaderType)
 	}

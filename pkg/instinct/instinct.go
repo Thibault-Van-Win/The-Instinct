@@ -32,7 +32,7 @@ func (i *Instinct) AddReflex(r reflex.Reflex) {
 }
 
 // LoadReflexes loads reflexes using the specified loader
-func (i *Instinct) LoadReflexes(loaderType loaders.LoaderType, config map[string]any) error {
+func (i *Instinct) LoadReflexes(loaderType loaders.LoaderType, config any) error {
 	// Create the loader
 	loader, err := i.LoaderFactory.CreateLoader(loaderType, config)
 	if err != nil {

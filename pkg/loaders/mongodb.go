@@ -3,11 +3,8 @@ package loaders
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
+	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	mongoRepo "github.com/Thibault-Van-Win/The-Instinct/pkg/reflex/mongo"
@@ -16,19 +13,15 @@ import (
 
 // MongoDBLoader loads reflexes from MongoDB
 type MongoDBLoader struct {
-	URI            string
-	DatabaseName   string
-	CollectionName string
+	dbConfig *config.DatabaseConfig	
 	RuleRegistry   *rule.RuleRegistry
 	ActionRegistry *action.ActionRegistry
 }
 
 // NewMongoDBLoader creates a new MongoDB loader
-func NewMongoDBLoader(uri, dbName, collName string, ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *MongoDBLoader {
+func NewMongoDBLoader(dbConfig *config.DatabaseConfig, ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *MongoDBLoader {
 	return &MongoDBLoader{
-		URI:            uri,
-		DatabaseName:   dbName,
-		CollectionName: collName,
+		dbConfig: dbConfig,
 		RuleRegistry:   ruleRegistry,
 		ActionRegistry: actionRegistry,
 	}
@@ -37,16 +30,10 @@ func NewMongoDBLoader(uri, dbName, collName string, ruleRegistry *rule.RuleRegis
 // LoadReflexes implements the RuleLoader interface
 func (l *MongoDBLoader) LoadReflexes() ([]reflex.Reflex, error) {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(l.URI))
+	repo, err := mongoRepo.NewRepository(l.dbConfig, l.RuleRegistry, l.ActionRegistry)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		return nil, fmt.Errorf("failed to create reflex repository: %v", err)
 	}
-	defer client.Disconnect(ctx)
-
-	repo := mongoRepo.NewRepository(client.Database("instinct"), l.RuleRegistry, l.ActionRegistry)
 	service := reflex.NewReflexService(repo)
 
 	reflexes, err := service.ListReflexes(context.Background())
