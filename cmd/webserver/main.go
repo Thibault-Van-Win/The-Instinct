@@ -90,7 +90,7 @@ func main() {
 
 	e.POST("/event", handleEvent)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", conf.WebServerConfig.Port)))
 }
 
 func handleEvent(c echo.Context) error {

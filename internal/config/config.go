@@ -8,7 +8,8 @@ import (
 )
 
 type AppConfig struct {
-	DbConfig DatabaseConfig `env:", prefix=DB_"`
+	DbConfig        DatabaseConfig  `env:", prefix=DB_"`
+	WebServerConfig WebServerConfig `env:" ,prefix=WEB_"`
 }
 
 var (
