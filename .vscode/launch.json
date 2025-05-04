@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Seed DB Tool",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceFolder}/tools/seeddb",
+        "cwd": "${workspaceFolder}",
+        "env": {},
+        "args": []
+      },
+      {
+        "name": "Webserver",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceFolder}/cmd/webserver",
+        "cwd": "${workspaceFolder}",
+        "env": {},
+        "args": []
+      }
+    ]
+  }

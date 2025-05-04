@@ -2,6 +2,10 @@ package action
 
 import "fmt"
 
+const (
+	ActionTypePrint = "print"
+)
+
 type PrintAction struct {
 	BaseAction
 	Message string
@@ -19,7 +23,7 @@ func NewPrintAction(params map[string]any) (*PrintAction, error) {
 	}
 	return &PrintAction{
 		BaseAction: BaseAction{
-			Type: "Print",
+			Type: ActionTypePrint,
 			Name: name,
 		},
 		Message: message,

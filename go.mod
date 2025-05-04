@@ -29,6 +29,7 @@ require (
 	cel.dev/expr v0.23.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/labstack/echo/v4 v4.13.3
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	go.mongodb.org/mongo-driver v1.17.3

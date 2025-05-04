@@ -38,7 +38,7 @@ func main() {
 		log.Fatalf("Failed to parse YAML in file %s: %v", configDir, err)
 	}
 
-	// Create repo, add all items	
+	// Create repo, add all items
 	// Create the rule registry
 	ruleRegistry := rule.NewRuleRegistry(
 		rule.WithStandardRules(),

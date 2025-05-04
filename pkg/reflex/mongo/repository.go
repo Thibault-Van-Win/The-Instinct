@@ -22,7 +22,7 @@ type reflexDocument struct {
 	ID           primitive.ObjectID  `bson:"_id,omitempty"`
 	Name         string              `bson:"name"`
 	RuleConfig   rule.RuleConfig     `bson:"ruleConfig"`
-	ActionConfig action.ActionConfig `bson:"actionConfig"`
+	ActionConfig bson.Raw 			 `bson:"actionConfig"`
 	CreatedAt    time.Time           `bson:"createdAt"`
 	UpdatedAt    time.Time           `bson:"updatedAt"`
 }
@@ -91,11 +91,16 @@ func (r *Repository) Create(ctx context.Context, config reflex.ReflexConfig) (st
 		return "", errors.New("reflex with this name already exists")
 	}
 
+	rawActionConfig, err := bson.Marshal(config.ActionConfig)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal action config: %w", err)
+	}
+
 	now := time.Now()
 	doc := reflexDocument{
 		Name:         config.Name,
 		RuleConfig:   config.RuleConfig,
-		ActionConfig: config.ActionConfig,
+		ActionConfig: rawActionConfig,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -223,7 +228,12 @@ func (r *Repository) documentToReflex(doc reflexDocument) (*reflex.Reflex, error
 		return nil, fmt.Errorf("failed to create rule from config: %v", err)
 	}
 
-	actionInstance, err := r.actionRegistry.Create(doc.ActionConfig)
+	var actionConfig action.ActionConfig
+	if err := bson.Unmarshal(doc.ActionConfig, &actionConfig); err != nil {
+		return nil, fmt.Errorf("failed to decode action config: %w", err)
+	}
+
+	actionInstance, err := r.actionRegistry.Create(actionConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create action from config: %v", err)
 	}

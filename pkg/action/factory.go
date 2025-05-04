@@ -42,8 +42,12 @@ func (r *ActionRegistry) Create(config ActionConfig) (Action, error) {
 
 func (r *ActionRegistry) RegisterStandardActions() {
 	// Print action
-	r.Register("print", func(params map[string]any) (Action, error) {
+	r.Register(ActionTypePrint, func(params map[string]any) (Action, error) {
 		return NewPrintAction(params)
+	})
+
+	r.Register(ActionTypeSequential, func(params map[string]any) (Action, error) {
+		return NewSequentialAction(params, r)
 	})
 }
 
