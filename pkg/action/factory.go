@@ -40,14 +40,18 @@ func (r *ActionRegistry) Create(config ActionConfig) (Action, error) {
 	return factory(config.Params)
 }
 
+// Register a set of standard actions included with the project
 func (r *ActionRegistry) RegisterStandardActions() {
-	// Print action
 	r.Register(ActionTypePrint, func(params map[string]any) (Action, error) {
 		return NewPrintAction(params)
 	})
 
 	r.Register(ActionTypeSequential, func(params map[string]any) (Action, error) {
 		return NewSequentialAction(params, r)
+	})
+
+	r.Register(ActionTypeParallel, func(params map[string]any) (Action, error) {
+		return NewParallelAction(params, r)
 	})
 }
 

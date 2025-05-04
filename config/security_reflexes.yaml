@@ -4,7 +4,7 @@
     params:
       expression: "severity == 'high' && tags.exists(tag, tag == 'ransomware')"
   action:
-    type: sequential
+    type: parallel
     params:
       name: "Ransomware playbook"
       children:
