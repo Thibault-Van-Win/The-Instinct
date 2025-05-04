@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -228,10 +229,20 @@ func (r *Repository) documentToReflex(doc reflexDocument) (*reflex.Reflex, error
 		return nil, fmt.Errorf("failed to create rule from config: %v", err)
 	}
 
-	var actionConfig action.ActionConfig
-	if err := bson.Unmarshal(doc.ActionConfig, &actionConfig); err != nil {
-		return nil, fmt.Errorf("failed to decode action config: %w", err)
-	}
+	// First unmarshal to a temporary structure with standard Go types
+    var tempMap map[string]any
+    if err := bson.Unmarshal(doc.ActionConfig, &tempMap); err != nil {
+        return nil, fmt.Errorf("failed to decode action config: %w", err)
+    }
+    
+    // Convert any MongoDB primitive types to standard Go types
+    sanitizedMap := sanitizeBSONPrimitives(tempMap)
+    
+    // Now create an ActionConfig from the sanitized map
+    var actionConfig action.ActionConfig
+    if err := mapstructure.Decode(sanitizedMap, &actionConfig); err != nil {
+        return nil, fmt.Errorf("failed to decode sanitized action config: %w", err)
+    }	
 
 	actionInstance, err := r.actionRegistry.Create(actionConfig)
 	if err != nil {
@@ -243,4 +254,52 @@ func (r *Repository) documentToReflex(doc reflexDocument) (*reflex.Reflex, error
 		ruleInstance,
 		actionInstance,
 	), nil
+}
+
+func sanitizeBSONPrimitives(input any) any {
+    switch v := input.(type) {
+    case primitive.A:
+        // Convert MongoDB array to Go slice
+        result := make([]any, len(v))
+        for i, item := range v {
+            result[i] = sanitizeBSONPrimitives(item)
+        }
+        return result
+        
+    case primitive.D:
+        // Convert MongoDB document to Go map
+        result := make(map[string]any)
+        for _, elem := range v {
+            result[elem.Key] = sanitizeBSONPrimitives(elem.Value)
+        }
+        return result
+        
+    case primitive.M:
+        // Convert MongoDB map to Go map
+        result := make(map[string]any)
+        for key, val := range v {
+            result[key] = sanitizeBSONPrimitives(val)
+        }
+        return result
+        
+    case map[string]any:
+        // Recursively sanitize map values
+        result := make(map[string]any)
+        for key, val := range v {
+            result[key] = sanitizeBSONPrimitives(val)
+        }
+        return result
+        
+    case []any:
+        // Recursively sanitize slice elements
+        result := make([]any, len(v))
+        for i, item := range v {
+            result[i] = sanitizeBSONPrimitives(item)
+        }
+        return result
+        
+    default:
+        // Return other types as-is
+        return v
+    }
 }

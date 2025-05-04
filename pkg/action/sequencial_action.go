@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -23,20 +22,10 @@ func NewSequentialAction(params map[string]any, reg *ActionRegistry) (*Sequentia
 		return nil, fmt.Errorf("a sequential action requires a name")
 	}
 
-	// This is dirty...
-	// Primitive.A is not correctly converted a a slice...
-	var childConfigs []any
-	switch children := params["children"].(type) {
-    case []any:
-        // Standard Go slice - use directly
-        childConfigs = children
-    case primitive.A:
-        // MongoDB primitive.A - convert to []any
-        childConfigs = make([]any, len(children))
-		copy(childConfigs, children)
-    default:
+	childConfigs, ok := params["children"].([]any)
+	if !ok {
         return nil, fmt.Errorf("a sequential action requires children action configs, got %T", params["children"])
-    }	
+	}
 
 	children := make([]Action, 0, len(childConfigs))
 	for _, rawChildConfig := range childConfigs {
