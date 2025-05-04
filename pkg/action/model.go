@@ -1,8 +1,36 @@
 package action
 
-// ! Important
-// ! Each action needs to implement this interface using a struct
-// ! A function-as-interface pattern is not possible here as this results in errors when the actions are serialized in json
+import "fmt"
+
 type Action interface {
-	Do() error
+	Execute(ctx *SecurityContext) error
+	GetType() string
+	GetName() string
+	Validate() error
+}
+
+// BaseAction provides common functionality for all actions
+type BaseAction struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (ba *BaseAction) GetType() string {
+	return ba.Type
+}
+
+func (ba *BaseAction) GetName() string {
+	return ba.Name
+}
+
+func (ba *BaseAction) Validate() error {
+	if ba.Type == "" {
+		return fmt.Errorf("missing type: all actions must have a type")
+	}
+
+	if ba.Name == "" {
+		return fmt.Errorf("missing name: all actions must have a unique name")
+	}
+
+	return nil
 }

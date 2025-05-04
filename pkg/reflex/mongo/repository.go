@@ -19,16 +19,16 @@ import (
 
 // Database representation of Reflexes
 type reflexDocument struct {
-	ID            primitive.ObjectID    `bson:"_id,omitempty"`
-	Name          string                `bson:"name"`
-	RuleConfig    rule.RuleConfig       `bson:"ruleConfig"`
-	ActionConfigs []action.ActionConfig `bson:"actionConfigs"`
-	CreatedAt     time.Time             `bson:"createdAt"`
-	UpdatedAt     time.Time             `bson:"updatedAt"`
+	ID           primitive.ObjectID  `bson:"_id,omitempty"`
+	Name         string              `bson:"name"`
+	RuleConfig   rule.RuleConfig     `bson:"ruleConfig"`
+	ActionConfig action.ActionConfig `bson:"actionConfig"`
+	CreatedAt    time.Time           `bson:"createdAt"`
+	UpdatedAt    time.Time           `bson:"updatedAt"`
 }
 
 type Repository struct {
-	client *mongo.Client
+	client         *mongo.Client
 	collection     *mongo.Collection
 	ruleRegistry   *rule.RuleRegistry
 	actionRegistry *action.ActionRegistry
@@ -68,7 +68,7 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 	}
 
 	return &Repository{
-		client: client,
+		client:         client,
 		collection:     collection,
 		ruleRegistry:   ruleReg,
 		actionRegistry: actionReg,
@@ -76,7 +76,7 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 }
 
 // Close closes the MongoDB connection
-func (r*Repository) Close(ctx context.Context) error {
+func (r *Repository) Close(ctx context.Context) error {
 	if r.client != nil {
 		return r.client.Disconnect(ctx)
 	}
@@ -93,11 +93,11 @@ func (r *Repository) Create(ctx context.Context, config reflex.ReflexConfig) (st
 
 	now := time.Now()
 	doc := reflexDocument{
-		Name:          config.Name,
-		RuleConfig:    config.RuleConfig,
-		ActionConfigs: config.ActionConfigs,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		Name:         config.Name,
+		RuleConfig:   config.RuleConfig,
+		ActionConfig: config.ActionConfig,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 
 	result, err := r.collection.InsertOne(ctx, doc)
@@ -177,10 +177,10 @@ func (r *Repository) Update(ctx context.Context, id string, config reflex.Reflex
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":          config.Name,
-			"ruleConfig":    config.RuleConfig,
-			"actionConfigs": config.ActionConfigs,
-			"updatedAt":     time.Now(),
+			"name":         config.Name,
+			"ruleConfig":   config.RuleConfig,
+			"actionConfig": config.ActionConfig,
+			"updatedAt":    time.Now(),
 		},
 	}
 
@@ -220,22 +220,17 @@ func (r *Repository) documentToReflex(doc reflexDocument) (*reflex.Reflex, error
 	// Convert rule configuration to actual rule
 	ruleInstance, err := r.ruleRegistry.Create(doc.RuleConfig)
 	if err != nil {
-		return nil, errors.New("failed to create rule from config: " + err.Error())
+		return nil, fmt.Errorf("failed to create rule from config: %v", err)
 	}
 
-	// Convert action configurations to actual actions
-	actions := make([]action.Action, 0, len(doc.ActionConfigs))
-	for _, actionConfig := range doc.ActionConfigs {
-		actionInstance, err := r.actionRegistry.Create(actionConfig)
-		if err != nil {
-			return nil, errors.New("failed to create action from config: " + err.Error())
-		}
-		actions = append(actions, actionInstance)
+	actionInstance, err := r.actionRegistry.Create(doc.ActionConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create action from config: %v", err)
 	}
 
 	return reflex.NewReflex(
 		doc.Name,
 		ruleInstance,
-		actions,
+		actionInstance,
 	), nil
 }

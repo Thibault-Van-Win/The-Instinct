@@ -10,9 +10,9 @@ import (
 
 // Domain model for a reflex configuration
 type ReflexConfig struct {
-	Name          string                `yaml:"name" json:"name"`
-	RuleConfig    rule.RuleConfig       `yaml:"rule" json:"rule"`
-	ActionConfigs []action.ActionConfig `yaml:"actions" json:"actions"`
+	Name         string              `yaml:"name" json:"name"`
+	RuleConfig   rule.RuleConfig     `yaml:"rule" json:"rule"`
+	ActionConfig action.ActionConfig `yaml:"action" json:"action"`
 }
 
 func (rc *ReflexConfig) Validate() error {
@@ -26,15 +26,8 @@ func (rc *ReflexConfig) Validate() error {
 	}
 
 	// Validate action configurations
-	var actionConfigErrors []error
-	for _, actionConfig := range rc.ActionConfigs {
-		if err := actionConfig.Validate(); err != nil {
-			actionConfigErrors = append(actionConfigErrors, err)
-		}
-	}
-
-	if len(actionConfigErrors) > 0 {
-		return fmt.Errorf("failed to validate action configs: %w", errors.Join(actionConfigErrors...))
+	if err := rc.ActionConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate action config: %v", err)
 	}
 
 	return nil

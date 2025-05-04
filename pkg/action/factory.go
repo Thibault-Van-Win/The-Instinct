@@ -43,11 +43,7 @@ func (r *ActionRegistry) Create(config ActionConfig) (Action, error) {
 func (r *ActionRegistry) RegisterStandardActions() {
 	// Print action
 	r.Register("print", func(params map[string]any) (Action, error) {
-		message, ok := params["message"].(string)
-		if !ok {
-			return nil, fmt.Errorf("print action requires a message parameter")
-		}
-		return NewPrintAction(message), nil
+		return NewPrintAction(params)
 	})
 }
 

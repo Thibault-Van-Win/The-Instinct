@@ -11,8 +11,8 @@ import (
 )
 
 type Instinct struct {
-	Reflexes      []reflex.Reflex
-	mu            sync.RWMutex
+	Reflexes []reflex.Reflex
+	mu       sync.RWMutex
 }
 
 // This is implemented by both the loader and repository interface
@@ -23,7 +23,7 @@ type ReflexLister interface {
 // New creates and returns a new Instinct instance
 func New(ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *Instinct {
 	return &Instinct{
-		Reflexes:      []reflex.Reflex{},
+		Reflexes: []reflex.Reflex{},
 	}
 }
 
@@ -36,10 +36,10 @@ func (i *Instinct) AddReflex(r reflex.Reflex) {
 
 // LoadReflexes loads reflexes using the specified loader
 func (i *Instinct) LoadReflexes(reflexLister ReflexLister) error {
-	
+
 	reflexes, err := reflexLister.ListReflexes(context.Background())
 	if err != nil {
-		return fmt.Errorf("failed to load reflexes: %w", err)
+		return fmt.Errorf("failed to list reflexes: %w", err)
 	}
 
 	// Dereference pointers
@@ -61,6 +61,13 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
+	// Create a context for the event
+	ctx := &action.SecurityContext{
+		EventData:       data,
+		Variables:       make(map[string]any),
+		ExecutionStatus: make(map[string]action.Status),
+	}
+
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(i.Reflexes))
 
@@ -75,7 +82,7 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 				return
 			}
 			if match {
-				if err := reflex.Do(); err != nil {
+				if err := reflex.Execute(ctx); err != nil {
 					errChan <- fmt.Errorf("error executing reflex %s: %w", reflex.Name, err)
 				}
 			}

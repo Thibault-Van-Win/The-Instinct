@@ -9,46 +9,37 @@ import (
 
 // Domain model for a reflex
 type Reflex struct {
-	Name    string          `json:"name"`
-	Rule    rule.Rule       `json:"rule"`
-	Actions []action.Action `json:"actions"`
+	Name   string        `json:"name"`
+	Rule   rule.Rule     `json:"rule"`
+	Action action.Action `json:"action"`
 }
 
 func (r *Reflex) Match(data map[string]any) (bool, error) {
 	return r.Rule.Match(data)
 }
 
-func (r *Reflex) Do() error {
-	for _, act := range r.Actions {
-		act.Do()
-	}
-
-	return nil
+func (r *Reflex) Execute(ctx *action.SecurityContext) error {
+	return r.Action.Execute(ctx)
 }
 
-func NewReflex(name string, rule rule.Rule, actions []action.Action) *Reflex {
+func NewReflex(name string, rule rule.Rule, act action.Action) *Reflex {
 	return &Reflex{
-		Name:    name,
-		Rule:    rule,
-		Actions: actions,
+		Name:   name,
+		Rule:   rule,
+		Action: act,
 	}
 }
 
 func ReflexFromConfig(config ReflexConfig, ruleReg *rule.RuleRegistry, actionReg *action.ActionRegistry) (*Reflex, error) {
 	ruleInstance, err := ruleReg.Create(config.RuleConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create rule: %w", err)
+		return nil, fmt.Errorf("failed to create rule: %v", err)
 	}
 
-	// Create the actions
-	actions := make([]action.Action, 0, len(config.ActionConfigs))
-	for _, actionConfig := range config.ActionConfigs {
-		actionInstance, err := actionReg.Create(actionConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create action for reflex %s: %w", config.Name, err)
-		}
-		actions = append(actions, actionInstance)
+	actionInstance, err := actionReg.Create(config.ActionConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create action: %v", err)
 	}
 
-	return NewReflex(config.Name, ruleInstance, actions), nil
+	return NewReflex(config.Name, ruleInstance, actionInstance), nil
 }

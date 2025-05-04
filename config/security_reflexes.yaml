@@ -3,27 +3,30 @@
     type: cel
     params:
       expression: "severity == 'high' && tags.exists(tag, tag == 'ransomware')"
-  actions:
-    - type: print
-      params:
-        message: "Ransomware detected! Initiating response..."
+  action:
+    type: print
+    params:
+      name: Ransomware response
+      message: "Ransomware detected! Initiating response..."
 
 - name: suspicious-login-detector
   rule:
     type: cel
     params:
       expression: "severity == 'medium' && tags.exists(tag, tag == 'suspicious-login')"
-  actions:
-    - type: print
-      params:
-        message: "Suspicious login detected!"
+  action:
+    type: print
+    params:
+      name: Log message
+      message: "Suspicious login detected!"
 
 - name: Auto-escalate-urgent
   rule:
     type: cel
     params:
       expression: "tags.exists(tag, tag == 'urgent')"
-  actions:
-    - type: print
-      params:
-        message: "Automatically escalating urgent event into case"
+  action:
+    type: print
+    params:
+      name: Escalate to case
+      message: "Automatically escalating urgent event into case"
