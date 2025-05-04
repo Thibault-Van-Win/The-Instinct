@@ -8,7 +8,7 @@ const (
 
 type PrintAction struct {
 	BaseAction
-	Message string
+	Message string `json:"message"`
 }
 
 func NewPrintAction(params map[string]any) (*PrintAction, error) {
