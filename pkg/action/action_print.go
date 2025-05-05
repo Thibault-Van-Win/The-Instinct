@@ -33,7 +33,7 @@ func NewPrintAction(params map[string]any) (*PrintAction, error) {
 // PrintAction creates a simple action that prints a message
 func (pa *PrintAction) Execute(ctx *SecurityContext) error {
 	fmt.Println(pa.Message)
-	ctx.Variables[pa.Name] = StatusCompleted
+	ctx.ExecutionStatus[pa.Name] = StatusCompleted
 	return nil
 }
 
