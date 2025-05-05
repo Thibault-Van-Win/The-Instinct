@@ -81,6 +81,7 @@ func handleEvent(c echo.Context) error {
 	fmt.Printf("Received the following event: %v\n", event)
 
 	if err := system.ProcessEvent(event); err != nil {
+		log.Println(err)
 		return c.String(http.StatusInternalServerError, "Something went wrong")
 	}
 

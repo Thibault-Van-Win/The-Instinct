@@ -2,6 +2,7 @@ package instinct
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -76,7 +77,7 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 		// Process each reflex in its own goroutine
 		go func(reflex reflex.Reflex) {
 			defer wg.Done()
-			match, err := reflex.Match(data)
+			match, err := reflex.Match(ctx)
 			if err != nil {
 				errChan <- fmt.Errorf("error matching reflex %s: %w", reflex.Name, err)
 				return
@@ -100,7 +101,7 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("encountered %d errors while processing event", len(errs))
+		return fmt.Errorf("encountered %d errors while processing event: %v", len(errs), errors.Join(errs...))
 	}
 
 	return nil

@@ -14,8 +14,8 @@ type Reflex struct {
 	Action action.Action `json:"action"`
 }
 
-func (r *Reflex) Match(data map[string]any) (bool, error) {
-	return r.Rule.Match(data)
+func (r *Reflex) Match(ctx *action.SecurityContext) (bool, error) {
+	return r.Rule.Match(ctx)
 }
 
 func (r *Reflex) Execute(ctx *action.SecurityContext) error {

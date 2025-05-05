@@ -1,8 +1,10 @@
 package rule
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/google/cel-go/cel"
 )
 
@@ -17,8 +19,14 @@ func NewCelRule(expression string) (*CelRule, error) {
 	}
 
 	env, _ := cel.NewEnv(
-		cel.Variable("severity", cel.StringType),
-		cel.Variable("tags", cel.ListType(cel.StringType)),
+		cel.Variable("event", cel.MapType(
+			cel.StringType,
+			cel.DynType,
+		)),
+		cel.Variable("variables", cel.MapType(
+			cel.StringType,
+			cel.DynType,
+		)),
 	)
 
 	ast, iss := env.Compile(instance.Expression)
@@ -36,9 +44,25 @@ func NewCelRule(expression string) (*CelRule, error) {
 	return instance, nil
 }
 
-func (cr *CelRule) Match(data map[string]any) (bool, error) {
+func (cr *CelRule) Match(ctx *action.SecurityContext) (bool, error) {
+	// Cannot give the ctx directly as the eval expect a map[string]any
+	// Use the json tags to marshall this into a map
+	// Another option would be to create a new map, benefits:
+	// 	- Faster
+	//	- Type safety
+	// Negatives:
+	//	- Need to add a new field for each extension
+	jsonBytes, err := json.Marshal(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal context: %v", err)
+	}
 
-	out, _, err := cr.program.Eval(data)
+	var activation map[string]any
+	if err := json.Unmarshal(jsonBytes, &activation); err != nil {
+		return false, fmt.Errorf("failed to unmarshal into map: %v", err)
+	}
+
+	out, _, err := cr.program.Eval(activation)
 	if err != nil {
 		return false, fmt.Errorf("failed to eval program: %v", err)
 	}

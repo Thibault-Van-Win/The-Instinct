@@ -1,5 +1,7 @@
 package rule
 
+import "github.com/Thibault-Van-Win/The-Instinct/pkg/action"
+
 type Rule interface {
-	Match(data map[string]any) (bool, error)
+	Match(ctx *action.SecurityContext) (bool, error)
 }

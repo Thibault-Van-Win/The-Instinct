@@ -2,7 +2,7 @@
   rule: 
     type: cel
     params:
-      expression: "severity == 'high' && tags.exists(tag, tag == 'ransomware')"
+      expression: "event.severity == 'high' && event.tags.exists(tag, tag == 'ransomware')"
   action:
     type: parallel
     params:
@@ -25,7 +25,7 @@
   rule:
     type: cel
     params:
-      expression: "severity == 'medium' && tags.exists(tag, tag == 'suspicious-login')"
+      expression: "event.severity == 'medium' && event.tags.exists(tag, tag == 'suspicious-login')"
   action:
     type: print
     params:
@@ -36,7 +36,7 @@
   rule:
     type: cel
     params:
-      expression: "tags.exists(tag, tag == 'urgent')"
+      expression: "event.tags.exists(tag, tag == 'urgent')"
   action:
     type: print
     params:
