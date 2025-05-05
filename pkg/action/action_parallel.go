@@ -25,7 +25,7 @@ func NewParallelAction(params map[string]any, reg *ActionRegistry) (*ParallelAct
 
 	childConfigs, ok := params["children"].([]any)
 	if !ok {
-        return nil, fmt.Errorf("a parallel action requires children action configs, got %T", params["children"])
+		return nil, fmt.Errorf("a parallel action requires children action configs, got %T", params["children"])
 	}
 
 	children := make([]Action, 0, len(childConfigs))
@@ -34,7 +34,7 @@ func NewParallelAction(params map[string]any, reg *ActionRegistry) (*ParallelAct
 		var childConfig ActionConfig
 		err := mapstructure.Decode(rawChildConfig, &childConfig)
 		if err != nil {
-			return nil, fmt.Errorf("child config has an unexpected structure: %v", err)	
+			return nil, fmt.Errorf("child config has an unexpected structure: %v", err)
 		}
 
 		child, err := reg.Create(childConfig)
@@ -75,8 +75,8 @@ func (pa *ParallelAction) Execute(ctx *SecurityContext) error {
 			defer wg.Done()
 
 			localCtx := &SecurityContext{
-				EventData: ctx.EventData,
-				Variables: make(map[string]any),
+				Event:           ctx.Event,
+				Variables:       make(map[string]any),
 				ExecutionStatus: make(map[string]Status),
 			}
 
@@ -113,7 +113,7 @@ func (pa *ParallelAction) Execute(ctx *SecurityContext) error {
 	for err := range errs {
 		errList = append(errList, err)
 	}
-	
+
 	if len(errList) > 0 {
 		ctx.ExecutionStatus[pa.Name] = "failed"
 		return fmt.Errorf("parallel action %s had %d failures: %w", pa.Name, len(errList), errors.Join(errList...))

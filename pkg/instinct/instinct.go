@@ -63,7 +63,7 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 
 	// Create a context for the event
 	ctx := &action.SecurityContext{
-		EventData:       data,
+		Event:           data,
 		Variables:       make(map[string]any),
 		ExecutionStatus: make(map[string]action.Status),
 	}

@@ -24,7 +24,7 @@ func NewSequentialAction(params map[string]any, reg *ActionRegistry) (*Sequentia
 
 	childConfigs, ok := params["children"].([]any)
 	if !ok {
-        return nil, fmt.Errorf("a sequential action requires children action configs, got %T", params["children"])
+		return nil, fmt.Errorf("a sequential action requires children action configs, got %T", params["children"])
 	}
 
 	children := make([]Action, 0, len(childConfigs))
@@ -33,7 +33,7 @@ func NewSequentialAction(params map[string]any, reg *ActionRegistry) (*Sequentia
 		var childConfig ActionConfig
 		err := mapstructure.Decode(rawChildConfig, &childConfig)
 		if err != nil {
-			return nil, fmt.Errorf("child config has an unexpected structure: %v", err)	
+			return nil, fmt.Errorf("child config has an unexpected structure: %v", err)
 		}
 
 		child, err := reg.Create(childConfig)

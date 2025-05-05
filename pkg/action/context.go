@@ -9,7 +9,7 @@ const (
 )
 
 type SecurityContext struct {
-	EventData       map[string]any    `json:"event_data"`
+	Event           map[string]any    `json:"event"`
 	Variables       map[string]any    `json:"variables"`
 	ExecutionStatus map[string]Status `json:"execution_status"`
 }
