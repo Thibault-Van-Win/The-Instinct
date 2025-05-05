@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -59,8 +60,8 @@ func NewParallelAction(params map[string]any, reg *ActionRegistry) (*ParallelAct
 	return instance, nil
 }
 
-func (pa *ParallelAction) Execute(ctx *SecurityContext) error {
-	ctx.ExecutionStatus[pa.Name] = StatusRunning
+func (pa *ParallelAction) Execute(ctx *security_context.SecurityContext) error {
+	ctx.ExecutionStatus[pa.Name] = security_context.StatusRunning
 
 	errs := make(chan error, len(pa.Children))
 	var wg sync.WaitGroup
@@ -74,10 +75,10 @@ func (pa *ParallelAction) Execute(ctx *SecurityContext) error {
 		go func(action Action) {
 			defer wg.Done()
 
-			localCtx := &SecurityContext{
+			localCtx := &security_context.SecurityContext{
 				Event:           ctx.Event,
 				Variables:       make(map[string]any),
-				ExecutionStatus: make(map[string]Status),
+				ExecutionStatus: make(map[string]security_context.Status),
 			}
 
 			// Copy over values to avoid race conditions
@@ -119,7 +120,7 @@ func (pa *ParallelAction) Execute(ctx *SecurityContext) error {
 		return fmt.Errorf("parallel action %s had %d failures: %w", pa.Name, len(errList), errors.Join(errList...))
 	}
 
-	ctx.ExecutionStatus[pa.Name] = StatusCompleted
+	ctx.ExecutionStatus[pa.Name] = security_context.StatusCompleted
 	return nil
 }
 

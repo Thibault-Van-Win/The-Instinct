@@ -1,9 +1,13 @@
 package action
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
+)
 
 type Action interface {
-	Execute(ctx *SecurityContext) error
+	Execute(ctx *security_context.SecurityContext) error
 	GetType() string
 	GetName() string
 	Validate() error

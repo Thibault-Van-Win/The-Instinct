@@ -5,6 +5,7 @@ import (
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
 // Domain model for a reflex
@@ -14,11 +15,11 @@ type Reflex struct {
 	Action action.Action `json:"action"`
 }
 
-func (r *Reflex) Match(ctx *action.SecurityContext) (bool, error) {
+func (r *Reflex) Match(ctx *security_context.SecurityContext) (bool, error) {
 	return r.Rule.Match(ctx)
 }
 
-func (r *Reflex) Execute(ctx *action.SecurityContext) error {
+func (r *Reflex) Execute(ctx *security_context.SecurityContext) error {
 	return r.Action.Execute(ctx)
 }
 

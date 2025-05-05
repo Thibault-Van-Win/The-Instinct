@@ -25,12 +25,25 @@
   rule:
     type: cel
     params:
-      expression: "event.severity == 'medium' && event.tags.exists(tag, tag == 'suspicious-login')"
+      expression: "event.tags.exists(tag, tag == 'suspicious-login')"
   action:
-    type: print
+    type: conditional
     params:
-      name: Log message
-      message: "Suspicious login detected!"
+      name: escalation path
+      rule_config:
+        type: cel
+        params:
+          expression: "event.severity == 'medium'"
+      then_action:
+        type: print
+        params:
+          name: Escalate by mail
+          message: "Medium Suspicious login detected! Escalating by mail."
+      else_action:
+        type: print
+        params:
+          name: Escalate by phone
+          message: "Highly Suspicious login detected! Escalating by phone."
 
 - name: Auto-escalate-urgent
   rule:

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -58,18 +59,18 @@ func NewSequentialAction(params map[string]any, reg *ActionRegistry) (*Sequentia
 	return instance, nil
 }
 
-func (sa *SequentialAction) Execute(ctx *SecurityContext) error {
-	ctx.ExecutionStatus[sa.Name] = StatusRunning
+func (sa *SequentialAction) Execute(ctx *security_context.SecurityContext) error {
+	ctx.ExecutionStatus[sa.Name] = security_context.StatusRunning
 
 	for _, child := range sa.Children {
 		if err := child.Execute(ctx); err != nil {
-			ctx.ExecutionStatus[sa.Name] = StatusFailed
+			ctx.ExecutionStatus[sa.Name] = security_context.StatusFailed
 			// Sequential action fails if one child fails
 			return err
 		}
 	}
 
-	ctx.ExecutionStatus[sa.Name] = StatusCompleted
+	ctx.ExecutionStatus[sa.Name] = security_context.StatusCompleted
 	return nil
 }
 

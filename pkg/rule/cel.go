@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 	"github.com/google/cel-go/cel"
 )
 
@@ -44,7 +44,7 @@ func NewCelRule(expression string) (*CelRule, error) {
 	return instance, nil
 }
 
-func (cr *CelRule) Match(ctx *action.SecurityContext) (bool, error) {
+func (cr *CelRule) Match(ctx *security_context.SecurityContext) (bool, error) {
 	// Cannot give the ctx directly as the eval expect a map[string]any
 	// Use the json tags to marshall this into a map
 	// Another option would be to create a new map, benefits:

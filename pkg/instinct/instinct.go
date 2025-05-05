@@ -9,6 +9,7 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
 type Instinct struct {
@@ -63,10 +64,10 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 	defer i.mu.RUnlock()
 
 	// Create a context for the event
-	ctx := &action.SecurityContext{
+	ctx := &security_context.SecurityContext{
 		Event:           data,
 		Variables:       make(map[string]any),
-		ExecutionStatus: make(map[string]action.Status),
+		ExecutionStatus: make(map[string]security_context.Status),
 	}
 
 	var wg sync.WaitGroup

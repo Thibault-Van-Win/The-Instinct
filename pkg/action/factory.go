@@ -53,6 +53,10 @@ func (r *ActionRegistry) RegisterStandardActions() {
 	r.Register(ActionTypeParallel, func(params map[string]any) (Action, error) {
 		return NewParallelAction(params, r)
 	})
+
+	r.Register(ActionTypeConditional, func(params map[string]any) (Action, error) {
+		return NewConditionalAction(params, r)
+	})
 }
 
 func WithStandardActions() ActionRegistryOption {
