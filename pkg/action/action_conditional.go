@@ -13,9 +13,9 @@ const (
 
 type ConditionalAction struct {
 	BaseAction
-	Matcher Matcher `json:"matcher"`
-	ThenAction Action `json:"then_action"`
-	ElseAction Action `json:"else_action"`
+	Matcher    Matcher `json:"matcher"`
+	ThenAction Action  `json:"then_action"`
+	ElseAction Action  `json:"else_action"`
 }
 
 type Matcher interface {
@@ -88,7 +88,7 @@ func NewConditionalAction(params map[string]any, reg *ActionRegistry) (*Conditio
 			Type: ActionTypeConditional,
 			Name: name,
 		},
-		Matcher: rule,
+		Matcher:    rule,
 		ThenAction: thenAction,
 		ElseAction: elseAction,
 	}

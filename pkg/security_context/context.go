@@ -8,7 +8,7 @@ const (
 	StatusCompleted Status = "Completed"
 )
 
-//? Should a lock be included here?
+// ? Should a lock be included here?
 type SecurityContext struct {
 	Event           map[string]any    `json:"event"`
 	Variables       map[string]any    `json:"variables"`

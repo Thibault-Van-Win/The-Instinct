@@ -57,6 +57,10 @@ func (r *ActionRegistry) RegisterStandardActions() {
 	r.Register(ActionTypeConditional, func(params map[string]any) (Action, error) {
 		return NewConditionalAction(params, r)
 	})
+
+	r.Register(ActionTypeIterator, func(params map[string]any) (Action, error) {
+		return NewIteratorAction(params, r)
+	})
 }
 
 func WithStandardActions() ActionRegistryOption {
