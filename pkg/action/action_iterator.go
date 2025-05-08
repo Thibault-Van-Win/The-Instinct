@@ -1,7 +1,6 @@
 package action
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/google/cel-go/cel"
@@ -86,15 +85,10 @@ func NewIteratorAction(params map[string]any, reg *ActionRegistry) (*IteratorAct
 func (ia *IteratorAction) Execute(ctx *security_context.SecurityContext) error {
 	ctx.ExecutionStatus[ia.Name] = security_context.StatusRunning
 
-	// Fetch data
-	jsonBytes, err := json.Marshal(ctx)
+	// Fetch the data	
+	activation, err := ctx.ToMap()
 	if err != nil {
-		return fmt.Errorf("failed to marshal context: %v", err)
-	}
-
-	var activation map[string]any
-	if err := json.Unmarshal(jsonBytes, &activation); err != nil {
-		return fmt.Errorf("failed to unmarshal into map: %v", err)
+		return fmt.Errorf("failed to convert security context to a map: %v", err)
 	}
 
 	data, _, err := ia.compiledProgram.Eval(activation)

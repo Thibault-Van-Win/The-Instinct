@@ -1,11 +1,11 @@
 package rule
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 	"github.com/google/cel-go/cel"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
 type CelRule struct {
@@ -45,21 +45,9 @@ func NewCelRule(expression string) (*CelRule, error) {
 }
 
 func (cr *CelRule) Match(ctx *security_context.SecurityContext) (bool, error) {
-	// Cannot give the ctx directly as the eval expect a map[string]any
-	// Use the json tags to marshall this into a map
-	// Another option would be to create a new map, benefits:
-	// 	- Faster
-	//	- Type safety
-	// Negatives:
-	//	- Need to add a new field for each extension
-	jsonBytes, err := json.Marshal(ctx)
+	activation, err := ctx.ToMap()	
 	if err != nil {
-		return false, fmt.Errorf("failed to marshal context: %v", err)
-	}
-
-	var activation map[string]any
-	if err := json.Unmarshal(jsonBytes, &activation); err != nil {
-		return false, fmt.Errorf("failed to unmarshal into map: %v", err)
+		return false, fmt.Errorf("failed to convert security context to a map: %v", err)
 	}
 
 	out, _, err := cr.program.Eval(activation)
