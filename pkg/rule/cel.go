@@ -20,9 +20,9 @@ type CelRule struct {
 
 func NewCelRule(params map[string]any) (*CelRule, error) {
 	expression, ok := params["expression"].(string)
-		if !ok {
-			return nil, fmt.Errorf("cel rules requires an expression")
-		}
+	if !ok {
+		return nil, fmt.Errorf("cel rules requires an expression")
+	}
 
 	instance := &CelRule{
 		BaseRule: BaseRule{
