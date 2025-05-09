@@ -85,7 +85,7 @@ func NewIteratorAction(params map[string]any, reg *ActionRegistry) (*IteratorAct
 func (ia *IteratorAction) Execute(ctx *security_context.SecurityContext) error {
 	ctx.ExecutionStatus[ia.Name] = security_context.StatusRunning
 
-	// Fetch the data	
+	// Fetch the data
 	activation, err := ctx.ToMap()
 	if err != nil {
 		return fmt.Errorf("failed to convert security context to a map: %v", err)

@@ -63,13 +63,6 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
-	// Create a context for the event
-	ctx := &security_context.SecurityContext{
-		Event:           data,
-		Variables:       make(map[string]any),
-		ExecutionStatus: make(map[string]security_context.Status),
-	}
-
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(i.Reflexes))
 
@@ -78,6 +71,14 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 		// Process each reflex in its own goroutine
 		go func(reflex reflex.Reflex) {
 			defer wg.Done()
+			// Each event gets its own ctx
+			ctx, err := security_context.New(
+				security_context.WithEvent(data),
+			)
+			if err != nil {
+				errChan <- fmt.Errorf("failed to construct a security context: %v", err)
+			}
+
 			match, err := reflex.Match(ctx)
 			if err != nil {
 				errChan <- fmt.Errorf("error matching reflex %s: %w", reflex.Name, err)

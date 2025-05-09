@@ -51,7 +51,14 @@
     params:
       expression: "event.tags.exists(tag, tag == 'urgent')"
   action:
-    type: print
+    type: iterator
     params:
       name: Escalate to case
-      message: "Automatically escalating urgent event into case"
+      expression: "variables.ips"
+      stop_on_error: false
+      item_var_name: ip
+      inner_action:
+        type: print
+        params:
+          name: Add IP to case
+          message: "Adding IP to new case..."

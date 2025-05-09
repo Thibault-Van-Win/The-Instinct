@@ -45,7 +45,7 @@ func NewCelRule(expression string) (*CelRule, error) {
 }
 
 func (cr *CelRule) Match(ctx *security_context.SecurityContext) (bool, error) {
-	activation, err := ctx.ToMap()	
+	activation, err := ctx.ToMap()
 	if err != nil {
 		return false, fmt.Errorf("failed to convert security context to a map: %v", err)
 	}
