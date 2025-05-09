@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	RuleTypeCel = "cel"
+	RuleTypeCel string = "cel"
 )
 
 type CelRule struct {

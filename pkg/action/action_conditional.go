@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ActionTypeConditional = "conditional"
+	ActionTypeConditional string = "conditional"
 )
 
 type ConditionalAction struct {

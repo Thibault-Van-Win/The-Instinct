@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ActionTypeSequential = "sequential"
+	ActionTypeSequential string = "sequential"
 )
 
 type SequentialAction struct {

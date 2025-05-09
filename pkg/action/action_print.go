@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ActionTypePrint = "print"
+	ActionTypePrint string = "print"
 )
 
 type PrintAction struct {

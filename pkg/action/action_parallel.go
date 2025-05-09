@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	ActionTypeParallel = "parallel"
+	ActionTypeParallel string = "parallel"
 )
 
 type ParallelAction struct {

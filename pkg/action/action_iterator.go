@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ActionTypeIterator = "iterator"
+	ActionTypeIterator string = "iterator"
 )
 
 type IteratorAction struct {
