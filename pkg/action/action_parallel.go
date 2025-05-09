@@ -125,6 +125,10 @@ func (pa *ParallelAction) Execute(ctx *security_context.SecurityContext) error {
 }
 
 func (pa *ParallelAction) Validate() error {
+	if err := pa.BaseAction.Validate(); err != nil {
+		return fmt.Errorf("basic validation failed: %v", err)
+	}
+
 	if len(pa.Children) == 0 {
 		return fmt.Errorf("parallel action %s has no children", pa.Name)
 	}

@@ -75,6 +75,10 @@ func (sa *SequentialAction) Execute(ctx *security_context.SecurityContext) error
 }
 
 func (sa *SequentialAction) Validate() error {
+	if err := sa.BaseAction.Validate(); err != nil {
+		return fmt.Errorf("basic validation failed: %v", err)
+	}
+
 	if len(sa.Children) == 0 {
 		return fmt.Errorf("sequential action %s has no children", sa.Name)
 	}
