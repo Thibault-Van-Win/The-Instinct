@@ -41,12 +41,8 @@ func (r *RuleRegistry) Create(config RuleConfig) (Rule, error) {
 
 func (r *RuleRegistry) RegisterStandardRules() {
 	// Cel rule
-	r.Register("cel", func(params map[string]any) (Rule, error) {
-		expression, ok := params["expression"].(string)
-		if !ok {
-			return nil, fmt.Errorf("cel rules requires an expression")
-		}
-		return NewCelRule(expression)
+	r.Register(RuleTypeCel, func(params map[string]any) (Rule, error) {
+		return NewCelRule(params)
 	})
 }
 

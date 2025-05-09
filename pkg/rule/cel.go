@@ -8,13 +8,26 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
+const (
+	RuleTypeCel = "cel"
+)
+
 type CelRule struct {
-	Expression string
+	BaseRule
+	Expression string `json:"expression"`
 	program    cel.Program
 }
 
-func NewCelRule(expression string) (*CelRule, error) {
+func NewCelRule(params map[string]any) (*CelRule, error) {
+	expression, ok := params["expression"].(string)
+		if !ok {
+			return nil, fmt.Errorf("cel rules requires an expression")
+		}
+
 	instance := &CelRule{
+		BaseRule: BaseRule{
+			Type: RuleTypeCel,
+		},
 		Expression: expression,
 	}
 
@@ -61,4 +74,16 @@ func (cr *CelRule) Match(ctx *security_context.SecurityContext) (bool, error) {
 
 	// The rule dit not match
 	return false, nil
+}
+
+func (cr *CelRule) Validate() error {
+	if err := cr.BaseRule.Validate(); err != nil {
+		return fmt.Errorf("base validation failed: %v", err)
+	}
+
+	if cr.Expression == "" {
+		return fmt.Errorf("a cel rule must have an expression")
+	}
+
+	return nil
 }
