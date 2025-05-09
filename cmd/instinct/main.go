@@ -26,7 +26,7 @@ func main() {
 	// Create a new instinct system
 	system := instinct.New(ruleRegistry, actionRegistry)
 
-	loader, err := loaders.NewLoaderFactory(ruleRegistry, actionRegistry).CreateLoader(loaders.YAML,map[string]any{
+	loader, err := loaders.NewLoaderFactory(ruleRegistry, actionRegistry).CreateLoader(loaders.YAML, map[string]any{
 		"directory": "./config",
 	})
 	if err != nil {

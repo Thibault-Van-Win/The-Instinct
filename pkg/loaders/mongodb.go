@@ -13,7 +13,7 @@ import (
 
 // MongoDBLoader loads reflexes from MongoDB
 type MongoDBLoader struct {
-	dbConfig *config.DatabaseConfig	
+	dbConfig       *config.DatabaseConfig
 	RuleRegistry   *rule.RuleRegistry
 	ActionRegistry *action.ActionRegistry
 }
@@ -21,7 +21,7 @@ type MongoDBLoader struct {
 // NewMongoDBLoader creates a new MongoDB loader
 func NewMongoDBLoader(dbConfig *config.DatabaseConfig, ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *MongoDBLoader {
 	return &MongoDBLoader{
-		dbConfig: dbConfig,
+		dbConfig:       dbConfig,
 		RuleRegistry:   ruleRegistry,
 		ActionRegistry: actionRegistry,
 	}
@@ -37,5 +37,5 @@ func (l *MongoDBLoader) ListReflexes(ctx context.Context) ([]*reflex.Reflex, err
 	service := reflex.NewReflexService(repo)
 	defer service.Close(ctx)
 
-	return  service.ListReflexes(context.Background())
+	return service.ListReflexes(context.Background())
 }

@@ -2,28 +2,63 @@
   rule: 
     type: cel
     params:
-      expression: "severity == 'high' && tags.exists(tag, tag == 'ransomware')"
-  actions:
-    - type: print
-      params:
-        message: "Ransomware detected! Initiating response..."
+      expression: "event.severity == 'high' && event.tags.exists(tag, tag == 'ransomware')"
+  action:
+    type: parallel
+    params:
+      name: "Ransomware playbook"
+      children:
+        - type: print
+          params:
+            name: Log request
+            message: "1/3 Ransomware detected! Initiating response..."
+        - type: print
+          params:
+            name: Isolate endpoint
+            message: "2/3 Isolating endpoint"
+        - type: print
+          params:
+            name: Network scan
+            message: "3/3 scanning network for threats"
 
 - name: suspicious-login-detector
   rule:
     type: cel
     params:
-      expression: "severity == 'medium' && tags.exists(tag, tag == 'suspicious-login')"
-  actions:
-    - type: print
-      params:
-        message: "Suspicious login detected!"
+      expression: "event.tags.exists(tag, tag == 'suspicious-login')"
+  action:
+    type: conditional
+    params:
+      name: escalation path
+      rule_config:
+        type: cel
+        params:
+          expression: "event.severity == 'medium'"
+      then_action:
+        type: print
+        params:
+          name: Escalate by mail
+          message: "Medium Suspicious login detected! Escalating by mail."
+      else_action:
+        type: print
+        params:
+          name: Escalate by phone
+          message: "Highly Suspicious login detected! Escalating by phone."
 
 - name: Auto-escalate-urgent
   rule:
     type: cel
     params:
-      expression: "tags.exists(tag, tag == 'urgent')"
-  actions:
-    - type: print
-      params:
-        message: "Automatically escalating urgent event into case"
+      expression: "event.tags.exists(tag, tag == 'urgent')"
+  action:
+    type: iterator
+    params:
+      name: Escalate to case
+      expression: "variables.ips"
+      stop_on_error: false
+      item_var_name: ip
+      inner_action:
+        type: print
+        params:
+          name: Add IP to case
+          message: "Adding IP to new case..."

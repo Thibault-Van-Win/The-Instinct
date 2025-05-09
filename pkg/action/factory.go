@@ -40,14 +40,26 @@ func (r *ActionRegistry) Create(config ActionConfig) (Action, error) {
 	return factory(config.Params)
 }
 
+// Register a set of standard actions included with the project
 func (r *ActionRegistry) RegisterStandardActions() {
-	// Print action
-	r.Register("print", func(params map[string]any) (Action, error) {
-		message, ok := params["message"].(string)
-		if !ok {
-			return nil, fmt.Errorf("print action requires a message parameter")
-		}
-		return NewPrintAction(message), nil
+	r.Register(ActionTypePrint, func(params map[string]any) (Action, error) {
+		return NewPrintAction(params)
+	})
+
+	r.Register(ActionTypeSequential, func(params map[string]any) (Action, error) {
+		return NewSequentialAction(params, r)
+	})
+
+	r.Register(ActionTypeParallel, func(params map[string]any) (Action, error) {
+		return NewParallelAction(params, r)
+	})
+
+	r.Register(ActionTypeConditional, func(params map[string]any) (Action, error) {
+		return NewConditionalAction(params, r)
+	})
+
+	r.Register(ActionTypeIterator, func(params map[string]any) (Action, error) {
+		return NewIteratorAction(params, r)
 	})
 }
 

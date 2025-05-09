@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/google/cel-go/cel"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
 type CelRule struct {
@@ -17,8 +19,14 @@ func NewCelRule(expression string) (*CelRule, error) {
 	}
 
 	env, _ := cel.NewEnv(
-		cel.Variable("severity", cel.StringType),
-		cel.Variable("tags", cel.ListType(cel.StringType)),
+		cel.Variable("event", cel.MapType(
+			cel.StringType,
+			cel.DynType,
+		)),
+		cel.Variable("variables", cel.MapType(
+			cel.StringType,
+			cel.DynType,
+		)),
 	)
 
 	ast, iss := env.Compile(instance.Expression)
@@ -36,9 +44,13 @@ func NewCelRule(expression string) (*CelRule, error) {
 	return instance, nil
 }
 
-func (cr *CelRule) Match(data map[string]any) (bool, error) {
+func (cr *CelRule) Match(ctx *security_context.SecurityContext) (bool, error) {
+	activation, err := ctx.ToMap()
+	if err != nil {
+		return false, fmt.Errorf("failed to convert security context to a map: %v", err)
+	}
 
-	out, _, err := cr.program.Eval(data)
+	out, _, err := cr.program.Eval(activation)
 	if err != nil {
 		return false, fmt.Errorf("failed to eval program: %v", err)
 	}

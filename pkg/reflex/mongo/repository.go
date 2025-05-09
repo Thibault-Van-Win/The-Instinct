@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,16 +20,16 @@ import (
 
 // Database representation of Reflexes
 type reflexDocument struct {
-	ID            primitive.ObjectID    `bson:"_id,omitempty"`
-	Name          string                `bson:"name"`
-	RuleConfig    rule.RuleConfig       `bson:"ruleConfig"`
-	ActionConfigs []action.ActionConfig `bson:"actionConfigs"`
-	CreatedAt     time.Time             `bson:"createdAt"`
-	UpdatedAt     time.Time             `bson:"updatedAt"`
+	ID           primitive.ObjectID `bson:"_id,omitempty"`
+	Name         string             `bson:"name"`
+	RuleConfig   rule.RuleConfig    `bson:"ruleConfig"`
+	ActionConfig bson.Raw           `bson:"actionConfig"`
+	CreatedAt    time.Time          `bson:"createdAt"`
+	UpdatedAt    time.Time          `bson:"updatedAt"`
 }
 
 type Repository struct {
-	client *mongo.Client
+	client         *mongo.Client
 	collection     *mongo.Collection
 	ruleRegistry   *rule.RuleRegistry
 	actionRegistry *action.ActionRegistry
@@ -68,7 +69,7 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 	}
 
 	return &Repository{
-		client: client,
+		client:         client,
 		collection:     collection,
 		ruleRegistry:   ruleReg,
 		actionRegistry: actionReg,
@@ -76,7 +77,7 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 }
 
 // Close closes the MongoDB connection
-func (r*Repository) Close(ctx context.Context) error {
+func (r *Repository) Close(ctx context.Context) error {
 	if r.client != nil {
 		return r.client.Disconnect(ctx)
 	}
@@ -91,13 +92,18 @@ func (r *Repository) Create(ctx context.Context, config reflex.ReflexConfig) (st
 		return "", errors.New("reflex with this name already exists")
 	}
 
+	rawActionConfig, err := bson.Marshal(config.ActionConfig)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal action config: %w", err)
+	}
+
 	now := time.Now()
 	doc := reflexDocument{
-		Name:          config.Name,
-		RuleConfig:    config.RuleConfig,
-		ActionConfigs: config.ActionConfigs,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		Name:         config.Name,
+		RuleConfig:   config.RuleConfig,
+		ActionConfig: rawActionConfig,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 
 	result, err := r.collection.InsertOne(ctx, doc)
@@ -177,10 +183,10 @@ func (r *Repository) Update(ctx context.Context, id string, config reflex.Reflex
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":          config.Name,
-			"ruleConfig":    config.RuleConfig,
-			"actionConfigs": config.ActionConfigs,
-			"updatedAt":     time.Now(),
+			"name":         config.Name,
+			"ruleConfig":   config.RuleConfig,
+			"actionConfig": config.ActionConfig,
+			"updatedAt":    time.Now(),
 		},
 	}
 
@@ -220,22 +226,80 @@ func (r *Repository) documentToReflex(doc reflexDocument) (*reflex.Reflex, error
 	// Convert rule configuration to actual rule
 	ruleInstance, err := r.ruleRegistry.Create(doc.RuleConfig)
 	if err != nil {
-		return nil, errors.New("failed to create rule from config: " + err.Error())
+		return nil, fmt.Errorf("failed to create rule from config: %v", err)
 	}
 
-	// Convert action configurations to actual actions
-	actions := make([]action.Action, 0, len(doc.ActionConfigs))
-	for _, actionConfig := range doc.ActionConfigs {
-		actionInstance, err := r.actionRegistry.Create(actionConfig)
-		if err != nil {
-			return nil, errors.New("failed to create action from config: " + err.Error())
-		}
-		actions = append(actions, actionInstance)
+	// First unmarshal to a temporary structure with standard Go types
+	var tempMap map[string]any
+	if err := bson.Unmarshal(doc.ActionConfig, &tempMap); err != nil {
+		return nil, fmt.Errorf("failed to decode action config: %w", err)
+	}
+
+	// Convert any MongoDB primitive types to standard Go types
+	sanitizedMap := sanitizeBSONPrimitives(tempMap)
+
+	// Now create an ActionConfig from the sanitized map
+	var actionConfig action.ActionConfig
+	if err := mapstructure.Decode(sanitizedMap, &actionConfig); err != nil {
+		return nil, fmt.Errorf("failed to decode sanitized action config: %w", err)
+	}
+
+	actionInstance, err := r.actionRegistry.Create(actionConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create action from config: %v", err)
 	}
 
 	return reflex.NewReflex(
 		doc.Name,
 		ruleInstance,
-		actions,
+		actionInstance,
 	), nil
+}
+
+func sanitizeBSONPrimitives(input any) any {
+	switch v := input.(type) {
+	case primitive.A:
+		// Convert MongoDB array to Go slice
+		result := make([]any, len(v))
+		for i, item := range v {
+			result[i] = sanitizeBSONPrimitives(item)
+		}
+		return result
+
+	case primitive.D:
+		// Convert MongoDB document to Go map
+		result := make(map[string]any)
+		for _, elem := range v {
+			result[elem.Key] = sanitizeBSONPrimitives(elem.Value)
+		}
+		return result
+
+	case primitive.M:
+		// Convert MongoDB map to Go map
+		result := make(map[string]any)
+		for key, val := range v {
+			result[key] = sanitizeBSONPrimitives(val)
+		}
+		return result
+
+	case map[string]any:
+		// Recursively sanitize map values
+		result := make(map[string]any)
+		for key, val := range v {
+			result[key] = sanitizeBSONPrimitives(val)
+		}
+		return result
+
+	case []any:
+		// Recursively sanitize slice elements
+		result := make([]any, len(v))
+		for i, item := range v {
+			result[i] = sanitizeBSONPrimitives(item)
+		}
+		return result
+
+	default:
+		// Return other types as-is
+		return v
+	}
 }

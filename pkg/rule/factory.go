@@ -44,7 +44,7 @@ func (r *RuleRegistry) RegisterStandardRules() {
 	r.Register("cel", func(params map[string]any) (Rule, error) {
 		expression, ok := params["expression"].(string)
 		if !ok {
-			return nil, fmt.Errorf("print action requires a message parameter")
+			return nil, fmt.Errorf("cel rules requires an expression")
 		}
 		return NewCelRule(expression)
 	})

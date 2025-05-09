@@ -4,6 +4,8 @@
         "envconfig",
         "evaluable",
         "Fatalf",
-        "labstack"
+        "labstack",
+        "mapstructure",
+        "securitycontext"
     ]
 }

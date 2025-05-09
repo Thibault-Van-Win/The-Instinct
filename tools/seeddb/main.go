@@ -4,15 +4,14 @@ import (
 	"context"
 	"log"
 	"os"
-	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/yaml.v3"
 
 	"github.com/Thibault-Van-Win/The-Instinct/internal/config"
+	"github.com/Thibault-Van-Win/The-Instinct/internal/factory"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
 var (
@@ -25,28 +24,7 @@ func main() {
 		log.Fatalf("failed to retrieve config: %v", err)
 	}
 
-	dbConnString, err := conf.DbConfig.ConnString()
-	if err != nil {
-		log.Fatalf("failed to retrieve db connection string: %v", dbConnString)
-	}
-
 	log.Println("Seeding MongoDB database")
-	// Connect to MongoDB
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbConnString))
-	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
-	}
-	defer client.Disconnect(ctx)
-
-	// Ping to check connection
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		log.Fatalf("Failed to ping MongoDB: %v", err)
-	}
-	log.Println("Connected to MongoDB successfully")
 
 	// Load the yaml rules
 	data, err := os.ReadFile(configDir)
@@ -60,34 +38,31 @@ func main() {
 		log.Fatalf("Failed to parse YAML in file %s: %v", configDir, err)
 	}
 
-	// Add to MongoDB
-	// Push to the instinct db, reflexes collection
-	db := client.Database("instinct")
-	collection := db.Collection("reflexes")
+	// Create repo, add all items
+	// Create the rule registry
+	ruleRegistry := rule.NewRuleRegistry(
+		rule.WithStandardRules(),
+	)
 
-	// Insert or update each reflex config
-	for _, config := range configs {
-		filter := bson.M{"name": config.Name}
+	// Create action registry
+	actionRegistry := action.NewActionRegistry(
+		action.WithStandardActions(),
+	)
 
-		// Upsert the docs
-		opts := options.Replace().SetUpsert(true)
+	// Initialize repository and service (dependency injection)
+	repository, err := factory.NewReflexRepository(&conf.DbConfig, ruleRegistry, actionRegistry)
+	if err != nil {
+		log.Fatalf("Failed to create reflex repository: %v", err)
+	}
+	service := reflex.NewReflexService(repository)
+	defer service.Close(context.Background())
 
-		// Use ReplaceOne to either insert a new document or replace an existing one
-		result, err := collection.ReplaceOne(ctx, filter, config, opts)
+	for _, reflexConfig := range configs {
+		_, err := service.CreateReflex(context.Background(), reflexConfig)
 		if err != nil {
-			log.Printf("Error upserting reflex %s: %v", config.Name, err)
-			continue
-		}
-
-		if result.UpsertedCount > 0 {
-			log.Printf("Added new reflex: %s", config.Name)
-		} else if result.ModifiedCount > 0 {
-			log.Printf("Updated existing reflex: %s", config.Name)
-		} else {
-			log.Printf("No changes needed for reflex: %s", config.Name)
+			log.Fatalf("Failed to create reflex %s: %v", reflexConfig.Name, err)
 		}
 	}
 
 	log.Println("Database seeding completed successfully")
-
 }

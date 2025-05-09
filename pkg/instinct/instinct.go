@@ -2,17 +2,19 @@ package instinct
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
 type Instinct struct {
-	Reflexes      []reflex.Reflex
-	mu            sync.RWMutex
+	Reflexes []reflex.Reflex
+	mu       sync.RWMutex
 }
 
 // This is implemented by both the loader and repository interface
@@ -23,7 +25,7 @@ type ReflexLister interface {
 // New creates and returns a new Instinct instance
 func New(ruleRegistry *rule.RuleRegistry, actionRegistry *action.ActionRegistry) *Instinct {
 	return &Instinct{
-		Reflexes:      []reflex.Reflex{},
+		Reflexes: []reflex.Reflex{},
 	}
 }
 
@@ -36,10 +38,10 @@ func (i *Instinct) AddReflex(r reflex.Reflex) {
 
 // LoadReflexes loads reflexes using the specified loader
 func (i *Instinct) LoadReflexes(reflexLister ReflexLister) error {
-	
+
 	reflexes, err := reflexLister.ListReflexes(context.Background())
 	if err != nil {
-		return fmt.Errorf("failed to load reflexes: %w", err)
+		return fmt.Errorf("failed to list reflexes: %w", err)
 	}
 
 	// Dereference pointers
@@ -69,13 +71,21 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 		// Process each reflex in its own goroutine
 		go func(reflex reflex.Reflex) {
 			defer wg.Done()
-			match, err := reflex.Match(data)
+			// Each event gets its own ctx
+			ctx, err := security_context.New(
+				security_context.WithEvent(data),
+			)
+			if err != nil {
+				errChan <- fmt.Errorf("failed to construct a security context: %v", err)
+			}
+
+			match, err := reflex.Match(ctx)
 			if err != nil {
 				errChan <- fmt.Errorf("error matching reflex %s: %w", reflex.Name, err)
 				return
 			}
 			if match {
-				if err := reflex.Do(); err != nil {
+				if err := reflex.Execute(ctx); err != nil {
 					errChan <- fmt.Errorf("error executing reflex %s: %w", reflex.Name, err)
 				}
 			}
@@ -93,7 +103,7 @@ func (i *Instinct) ProcessEvent(data map[string]any) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("encountered %d errors while processing event", len(errs))
+		return fmt.Errorf("encountered %d errors while processing event: %v", len(errs), errors.Join(errs...))
 	}
 
 	return nil
