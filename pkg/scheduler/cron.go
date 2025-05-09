@@ -11,6 +11,10 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+const (
+	TypeCron string = "cron"
+)
+
 // CronScheduler implements Scheduler using cron expressions
 type CronScheduler struct {
 	BaseScheduler
@@ -38,8 +42,8 @@ func (s *CronScheduler) AddTrigger(config TriggerConfig) (string, error) {
 
 	// Set schedule type if not specified
 	if config.ScheduleType == "" {
-		config.ScheduleType = "cron"
-	} else if config.ScheduleType != "cron" {
+		config.ScheduleType = TypeCron
+	} else if config.ScheduleType != TypeCron {
 		return "", fmt.Errorf("invalid schedule type for CronScheduler: %s", config.ScheduleType)
 	}
 

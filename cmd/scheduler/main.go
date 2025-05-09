@@ -10,40 +10,35 @@ import (
 )
 
 func main() {
+	// TODO: fetch all triggers from the DB
+
 	cronConfig := scheduler.SchedulerConfig{
 		Type:     scheduler.TypeCron,
 		EventURL: "http://localhost:8080/event",
 	}
 
-	cronScheduler, err := scheduler.NewScheduler(cronConfig)
+	reg, err := scheduler.NewSchedulerRegistry(
+		scheduler.WithSchedulerFromConfig(cronConfig),
+		scheduler.WithTriggerConfigs([]scheduler.TriggerConfig{
+			{
+				ScheduleType: "cron",
+				Name:         "Minute Trigger",
+				Description:  "Runs every minute",
+				Schedule:     "* * * * *",
+				EventData: map[string]any{
+					"type":   "maintenance",
+					"action": "check",
+					"source": "scheduler",
+				},
+				Enabled: true,
+			},
+		}),
+	)
 	if err != nil {
-		log.Fatalf("Failed to create scheduler: %v", err)
+		log.Fatalf("Failed to initiate scheduler registry: %v", err)
 	}
 
-	// TODO: fetch all triggers from the DB
-	// TODO: loop over all trigger configs and add them in the correct scheduler
-	//? Might need a trigger registry to allow a mapping of which trigger config belongs to which scheduler
-
-	cronTrigger := scheduler.TriggerConfig{
-		ScheduleType: "cron",
-		Name:         "Minute Trigger",
-		Description:  "Runs every minute",
-		Schedule:     "* * * * *",
-		EventData: map[string]any{
-			"type":   "maintenance",
-			"action": "check",
-			"source": "scheduler",
-		},
-		Enabled: true,
-	}
-
-	cronID, err := cronScheduler.AddTrigger(cronTrigger)
-	if err != nil {
-		log.Fatalf("Failed to add cron trigger: %v", err)
-	}
-	log.Printf("Added cron trigger with ID: %s", cronID)
-
-	cronScheduler.Start()
+	reg.StartAll()
 
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
@@ -51,11 +46,7 @@ func main() {
 
 	// Wait for signal
 	<-stop
-	log.Println("Shutting down scheduler...")
-
-	ctx := cronScheduler.Stop()
-
-	// Wait for ongoing jobs to finish
-	<-ctx.Done()
-	log.Println("Scheduler stopped gracefully")
+	log.Println("Shutting down schedulers...")
+	reg.StopAll()
+	log.Println("All schedulers stopped")
 }
