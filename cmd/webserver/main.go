@@ -72,6 +72,7 @@ func main() {
 		log.Fatalf("Failed to init trigger config repository: %v", err)
 	}
 	triggerconfigService := triggerconfig.NewTriggerConfigService(triggerconfigRepository)
+	defer triggerconfigService.Close(context.Background())
 	triggerconfigController := controllers.NewTriggerConfigController(triggerconfigService)
 	triggerconfigController.Register(e)
 

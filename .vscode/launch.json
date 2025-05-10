@@ -20,6 +20,16 @@
         "cwd": "${workspaceFolder}",
         "env": {},
         "args": []
+      },
+      {
+        "name": "scheduler",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceFolder}/cmd/scheduler",
+        "cwd": "${workspaceFolder}",
+        "env": {},
+        "args": []
       }
     ]
   }

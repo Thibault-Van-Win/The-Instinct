@@ -203,7 +203,6 @@ func (s *CronScheduler) Stop() context.Context {
 	ctx := s.cron.Stop()
 	s.isRunning = false
 	s.entryIDs = make(map[string]cron.EntryID)
-	log.Println("Cron scheduler stopped")
 
 	return ctx
 }
