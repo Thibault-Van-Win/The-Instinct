@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/triggerconfig"
 )
 
 const (
@@ -36,7 +38,7 @@ func NewCronScheduler(publisher EventPublisher) *CronScheduler {
 }
 
 // AddTrigger adds a new time-based trigger
-func (s *CronScheduler) AddTrigger(config TriggerConfig) (string, error) {
+func (s *CronScheduler) AddTrigger(config triggerconfig.TriggerConfig) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -72,7 +74,7 @@ func (s *CronScheduler) AddTrigger(config TriggerConfig) (string, error) {
 }
 
 // UpdateTrigger updates an existing trigger
-func (s *CronScheduler) UpdateTrigger(config TriggerConfig) error {
+func (s *CronScheduler) UpdateTrigger(config triggerconfig.TriggerConfig) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -128,7 +130,7 @@ func (s *CronScheduler) RemoveTrigger(id string) error {
 }
 
 // scheduleTrigger adds the trigger to the cron scheduler
-func (s *CronScheduler) scheduleTrigger(config TriggerConfig) error {
+func (s *CronScheduler) scheduleTrigger(config triggerconfig.TriggerConfig) error {
 	entryID, err := s.cron.AddFunc(config.Schedule, func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -207,7 +209,7 @@ func (s *CronScheduler) Stop() context.Context {
 }
 
 // GetTrigger retrieves a trigger by ID
-func (s *CronScheduler) GetTrigger(id string) (TriggerConfig, error) {
+func (s *CronScheduler) GetTrigger(id string) (triggerconfig.TriggerConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -215,7 +217,7 @@ func (s *CronScheduler) GetTrigger(id string) (TriggerConfig, error) {
 }
 
 // ListTriggers returns all triggers
-func (s *CronScheduler) ListTriggers(ctx context.Context) ([]TriggerConfig, error) {
+func (s *CronScheduler) ListTriggers(ctx context.Context) ([]triggerconfig.TriggerConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

@@ -3,6 +3,8 @@ package scheduler
 import (
 	"fmt"
 	"log"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/triggerconfig"
 )
 
 // Factory method
@@ -69,7 +71,7 @@ func WithSchedulerFromConfig(config SchedulerConfig) SchedulerRegistryOption {
 	}
 }
 
-func WithTriggerConfigs(triggerConfigs []TriggerConfig) SchedulerRegistryOption {
+func WithTriggerConfigs(triggerConfigs []triggerconfig.TriggerConfig) SchedulerRegistryOption {
 	return func(sr *SchedulerRegistry) error {
 		for _, triggerConfig := range triggerConfigs {
 			instance, ok := sr.Schedulers[triggerConfig.ScheduleType]

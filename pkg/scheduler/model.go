@@ -3,6 +3,8 @@ package scheduler
 import (
 	"context"
 	"time"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/triggerconfig"
 )
 
 type EventPublisher interface {
@@ -11,19 +13,19 @@ type EventPublisher interface {
 
 type Scheduler interface {
 	// AddTrigger adds a new trigger and returns its ID
-	AddTrigger(config TriggerConfig) (string, error)
+	AddTrigger(config triggerconfig.TriggerConfig) (string, error)
 
 	// UpdateTrigger updates an existing trigger
-	UpdateTrigger(config TriggerConfig) error
+	UpdateTrigger(config triggerconfig.TriggerConfig) error
 
 	// RemoveTrigger removes a trigger by ID
 	RemoveTrigger(id string) error
 
 	// GetTrigger retrieves a trigger by ID
-	GetTrigger(id string) (TriggerConfig, error)
+	GetTrigger(id string) (triggerconfig.TriggerConfig, error)
 
 	// ListTriggers returns all triggers
-	ListTriggers(ctx context.Context) ([]TriggerConfig, error)
+	ListTriggers(ctx context.Context) ([]triggerconfig.TriggerConfig, error)
 
 	// Start starts the scheduler
 	Start() error
@@ -34,34 +36,34 @@ type Scheduler interface {
 
 // BaseScheduler implements common functionality for all schedulers
 type BaseScheduler struct {
-	triggers       map[string]TriggerConfig
+	triggers       map[string]triggerconfig.TriggerConfig
 	eventPublisher EventPublisher
 }
 
 func NewBaseScheduler(publisher EventPublisher) BaseScheduler {
 	return BaseScheduler{
-		triggers:       make(map[string]TriggerConfig),
+		triggers:       make(map[string]triggerconfig.TriggerConfig),
 		eventPublisher: publisher,
 	}
 }
 
-func (s *BaseScheduler) GetTrigger(id string) (TriggerConfig, error) {
+func (s *BaseScheduler) GetTrigger(id string) (triggerconfig.TriggerConfig, error) {
 	trigger, exists := s.triggers[id]
 	if !exists {
-		return TriggerConfig{}, ErrTriggerNotFound
+		return triggerconfig.TriggerConfig{}, ErrTriggerNotFound
 	}
 	return trigger, nil
 }
 
-func (s *BaseScheduler) ListTriggers(ctx context.Context) ([]TriggerConfig, error) {
-	triggers := make([]TriggerConfig, 0, len(s.triggers))
+func (s *BaseScheduler) ListTriggers(ctx context.Context) ([]triggerconfig.TriggerConfig, error) {
+	triggers := make([]triggerconfig.TriggerConfig, 0, len(s.triggers))
 	for _, trigger := range s.triggers {
 		triggers = append(triggers, trigger)
 	}
 	return triggers, nil
 }
 
-func (s *BaseScheduler) createEventWithMetadata(trigger TriggerConfig) map[string]any {
+func (s *BaseScheduler) createEventWithMetadata(trigger triggerconfig.TriggerConfig) map[string]any {
 	eventData := make(map[string]any)
 	for k, v := range trigger.EventData {
 		eventData[k] = v
