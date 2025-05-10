@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/scheduler"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/triggerconfig"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 
 	reg, err := scheduler.NewSchedulerRegistry(
 		scheduler.WithSchedulerFromConfig(cronConfig),
-		scheduler.WithTriggerConfigs([]scheduler.TriggerConfig{
+		scheduler.WithTriggerConfigs([]triggerconfig.TriggerConfig{
 			{
 				ScheduleType: "cron",
 				Name:         "Minute Trigger",

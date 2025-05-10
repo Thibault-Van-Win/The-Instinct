@@ -13,3 +13,8 @@ type TriggerConfig struct {
 	Enabled      bool           `json:"enabled"`
 	LastRun      time.Time      `json:"last_run,omitempty"`
 }
+
+// TODO implement
+func (tc *TriggerConfig) Validate() error {
+	return nil
+}
