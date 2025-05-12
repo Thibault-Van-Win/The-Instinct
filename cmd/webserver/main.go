@@ -16,6 +16,7 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/instinct"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/triggerconfig"
 )
 
 var (
@@ -62,8 +63,18 @@ func main() {
 		middleware.Recover(),
 	)
 
+	// Register the needed controllers
 	reflexController := controllers.NewReflexController(service)
 	reflexController.Register(e)
+
+	triggerconfigRepository, err := factory.NewTriggerConfigRepository(&conf.DbConfig)
+	if err != nil {
+		log.Fatalf("Failed to init trigger config repository: %v", err)
+	}
+	triggerconfigService := triggerconfig.NewTriggerConfigService(triggerconfigRepository)
+	defer triggerconfigService.Close(context.Background())
+	triggerconfigController := controllers.NewTriggerConfigController(triggerconfigService)
+	triggerconfigController.Register(e)
 
 	e.POST("/event", handleEvent)
 

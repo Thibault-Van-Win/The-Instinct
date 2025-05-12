@@ -6,6 +6,8 @@
         "Fatalf",
         "labstack",
         "mapstructure",
-        "securitycontext"
+        "securitycontext",
+        "triggerconfig",
+        "triggerconfigs"
     ]
 }

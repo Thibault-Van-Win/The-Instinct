@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 	"github.com/labstack/echo/v4"
+
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/reflex"
 )
 
 type ReflexController struct {
