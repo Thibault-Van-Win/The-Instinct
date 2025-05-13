@@ -65,7 +65,9 @@ func (cr *CelRule) Match(ctx *security_context.SecurityContext) (bool, error) {
 
 	out, _, err := cr.program.Eval(activation)
 	if err != nil {
-		return false, fmt.Errorf("failed to eval program: %v", err)
+		// Ignore matching errors
+		// These include if the field does not exists
+		return false, nil
 	}
 
 	if val, ok := out.Value().(bool); ok && val {
