@@ -18,6 +18,14 @@ import (
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/rule"
 )
 
+const (
+	FieldID           = "_id"
+	FieldName         = "name"
+	FieldRuleConfig   = "ruleConfig"
+	FieldActionConfig = "actionConfig"
+	FieldUpdatedAt    = "updatedAt"
+)
+
 // Database representation of Reflexes
 type reflexDocument struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
@@ -56,7 +64,7 @@ func NewRepository(dbConfig *config.DatabaseConfig, ruleReg *rule.RuleRegistry, 
 
 	// Create indexes for faster lookups
 	indexModel := mongo.IndexModel{
-		Keys:    bson.D{{Key: "name", Value: 1}},
+		Keys:    bson.D{{Key: FieldName, Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
@@ -121,7 +129,7 @@ func (r *Repository) Create(ctx context.Context, config reflex.ReflexConfig) (st
 
 func (r *Repository) GetByName(ctx context.Context, name string) (*reflex.Reflex, error) {
 	var doc reflexDocument
-	err := r.collection.FindOne(ctx, bson.M{"name": name}).Decode(&doc)
+	err := r.collection.FindOne(ctx, bson.M{FieldName: name}).Decode(&doc)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
@@ -139,7 +147,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*reflex.Reflex, er
 	}
 
 	var doc reflexDocument
-	err = r.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&doc)
+	err = r.collection.FindOne(ctx, bson.M{FieldID: objectID}).Decode(&doc)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New("reflex not found")
@@ -183,14 +191,14 @@ func (r *Repository) Update(ctx context.Context, id string, config reflex.Reflex
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":         config.Name,
-			"ruleConfig":   config.RuleConfig,
-			"actionConfig": config.ActionConfig,
-			"updatedAt":    time.Now(),
+			FieldName:         config.Name,
+			FieldRuleConfig:   config.RuleConfig,
+			FieldActionConfig: config.ActionConfig,
+			FieldUpdatedAt:    time.Now(),
 		},
 	}
 
-	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	result, err := r.collection.UpdateOne(ctx, bson.M{FieldID: objectID}, update)
 	if err != nil {
 		return err
 	}
@@ -209,7 +217,7 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 		return errors.New("invalid ID format")
 	}
 
-	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	result, err := r.collection.DeleteOne(ctx, bson.M{FieldID: objectID})
 	if err != nil {
 		return err
 	}
