@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -78,7 +81,24 @@ func main() {
 
 	e.POST("/event", handleEvent)
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", conf.WebServerConfig.Port)))
+	// Start the server
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		if err := e.Start(fmt.Sprintf(":%d", conf.WebServerConfig.Port)); err != nil && err != http.ErrServerClosed {
+			log.Println("Shutting down server")
+		}
+
+	}()
+	<-ctx.Done()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	log.Println("Gracefully terminating server")
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
 }
 
 func handleEvent(c echo.Context) error {
