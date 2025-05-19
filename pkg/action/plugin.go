@@ -1,6 +1,7 @@
 package action
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/rpc"
 
@@ -16,8 +17,13 @@ type ActionRPC struct {
 
 // Implement all action interface functions
 func (a *ActionRPC) Execute(ctx *security_context.SecurityContext) error {
+	b, err := json.Marshal(ctx)
+	if err != nil {
+		return fmt.Errorf("client: failed to marshal context: %w", err)
+	}
+
 	var resp error
-	err := a.client.Call("Plugin.Execute", ctx, &resp)	
+	err = a.client.Call("Plugin.Execute", string(b), &resp)	
 	if err != nil {
 		return fmt.Errorf("failed to execute plugin: %v", err)
 	}
@@ -60,8 +66,12 @@ type ActionRPCServer struct {
 	Impl Action
 }
 
-func (s *ActionRPCServer) Execute(args any, resp *error) error {
-	*resp = s.Impl.Execute(args.(*security_context.SecurityContext))
+func (s *ActionRPCServer) Execute(arg string, resp *error) error {
+	var ctx security_context.SecurityContext
+	if err := json.Unmarshal([]byte(arg), &ctx); err != nil {
+		return fmt.Errorf("plugin: failed to unmarshal context: %w", err)
+	}
+	*resp = s.Impl.Execute(&ctx)
 
 	return nil
 }

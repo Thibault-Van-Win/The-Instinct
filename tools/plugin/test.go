@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
+	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -34,6 +35,18 @@ func main() {
 	fmt.Printf("Plugin name: %s\n", greeter.GetName())
 	fmt.Printf("Plugin type: %s\n", greeter.GetType())
 	fmt.Printf("Plugin validity: %s\n", greeter.Validate())
+
+	ctx, err := security_context.New(
+		security_context.WithEvent(map[string]any{
+			"test": "test",
+		}),
+		security_context.WithVariable("key", "value"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Plugin action: %s\n", greeter.Execute(ctx))
 	
 }
 
