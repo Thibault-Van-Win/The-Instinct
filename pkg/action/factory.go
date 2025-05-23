@@ -11,7 +11,7 @@ import (
 // ActionRegistry is a registry of action factories
 type ActionRegistry struct {
 	factories map[string]ActionFactory
-	clients []*plugin.Client
+	clients   []*plugin.Client
 }
 
 type ActionRegistryOption func(*ActionRegistry)
@@ -107,7 +107,7 @@ func (r *ActionRegistry) RegisterPlugins() {
 
 	greeter := raw.(Action)
 	r.Register(
-		greeter.GetType(), 
+		greeter.GetType(),
 		func(params map[string]any) (Action, error) {
 			return NewPluginActionDecorator(greeter, params)
 		},

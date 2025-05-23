@@ -47,7 +47,7 @@ func main() {
 	}
 
 	fmt.Printf("Plugin action: %s\n", greeter.Execute(ctx))
-	
+
 }
 
 var handshakeConfig = plugin.HandshakeConfig{

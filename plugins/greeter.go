@@ -10,7 +10,6 @@ import (
 )
 
 type Greeter struct {
-
 }
 
 // Implement the action interface
@@ -50,6 +49,6 @@ func main() {
 
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: handshakeConfig,
-		Plugins: pluginMap,
+		Plugins:         pluginMap,
 	})
 }

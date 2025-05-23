@@ -23,7 +23,7 @@ func (a *ActionRPC) Execute(ctx *security_context.SecurityContext) error {
 	}
 
 	var resp error
-	err = a.client.Call("Plugin.Execute", string(b), &resp)	
+	err = a.client.Call("Plugin.Execute", string(b), &resp)
 	if err != nil {
 		return fmt.Errorf("failed to execute plugin: %v", err)
 	}
@@ -43,7 +43,7 @@ func (a *ActionRPC) GetType() string {
 
 func (a *ActionRPC) GetName() string {
 	var resp string
-	err := a.client.Call("Plugin.GetName", new(interface{}), &resp) 
+	err := a.client.Call("Plugin.GetName", new(interface{}), &resp)
 	if err != nil {
 		panic("Failed to get name of plugin")
 	}
@@ -86,7 +86,7 @@ func (s ActionRPCServer) GetName(args any, resp *string) error {
 	return nil
 }
 
-func (s *ActionRPCServer)  Validate(args any, resp *error) error {
+func (s *ActionRPCServer) Validate(args any, resp *error) error {
 	*resp = s.Impl.Validate()
 	return nil
 }

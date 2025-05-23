@@ -8,7 +8,7 @@ import "github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 type PluginActionDecorator struct {
 	BaseAction
 	Wrapped Action
-	Config map[string]any
+	Config  map[string]any
 }
 
 func NewPluginActionDecorator(wrapped Action, config map[string]any) (*PluginActionDecorator, error) {

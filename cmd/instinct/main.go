@@ -23,7 +23,7 @@ func main() {
 		action.WithStandardActions(),
 		action.WithPlugins(),
 	)
-	
+
 	defer actionRegistry.Close()
 
 	// Create a new instinct system
