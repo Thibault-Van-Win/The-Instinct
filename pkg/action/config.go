@@ -15,6 +15,7 @@ type ActionConfig struct {
 func (ac *ActionConfig) Validate() error {
 	actionReg := NewActionRegistry(
 		WithStandardActions(),
+		WithPlugins(),
 	)
 
 	_, err := actionReg.Create(*ac)

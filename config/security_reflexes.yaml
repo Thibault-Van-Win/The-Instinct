@@ -62,3 +62,14 @@
         params:
           name: Add IP to case
           message: "Adding IP to new case..."
+
+- name: greeter
+  rule: 
+    type: cel
+    params:
+      expression: "true"
+  action:
+    type: greeter
+    params:
+      message: Hello
+      

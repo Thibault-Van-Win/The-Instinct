@@ -40,6 +40,7 @@ func main() {
 	// Create action registry
 	actionRegistry := action.NewActionRegistry(
 		action.WithStandardActions(),
+		action.WithPlugins(),
 	)
 
 	// Create a new instinct system

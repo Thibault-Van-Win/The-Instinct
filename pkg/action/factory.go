@@ -1,6 +1,12 @@
 package action
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"os/exec"
+
+	"github.com/hashicorp/go-plugin"
+)
 
 // ActionRegistry is a registry of action factories
 type ActionRegistry struct {
@@ -69,8 +75,54 @@ func WithStandardActions() ActionRegistryOption {
 	}
 }
 
+// TODO: connection lifetime should be managed here
+func (r *ActionRegistry) RegisterPlugins() {
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: handshakeConfig,
+		Plugins:         pluginMap,
+		Cmd:             exec.Command("./plugins/greeter"),
+	})
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense("greeter")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	greeter := raw.(Action)
+	r.Register(
+		greeter.GetType(), 
+		func(params map[string]any) (Action, error) {
+			return NewPluginActionDecorator(greeter, params)
+		},
+	)
+}
+
+func WithPlugins() ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.RegisterPlugins()
+	}
+}
+
 func WithActionFactory(name string, factory ActionFactory) ActionRegistryOption {
 	return func(ar *ActionRegistry) {
 		ar.Register(name, factory)
 	}
+}
+
+var handshakeConfig = plugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "BASIC_PLUGIN",
+	MagicCookieValue: "hello",
+}
+
+// pluginMap is the map of plugins we can dispense.
+var pluginMap = map[string]plugin.Plugin{
+	"greeter": &ActionPlugin{},
 }

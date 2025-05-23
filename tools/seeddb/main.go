@@ -47,6 +47,7 @@ func main() {
 	// Create action registry
 	actionRegistry := action.NewActionRegistry(
 		action.WithStandardActions(),
+		action.WithPlugins(),
 	)
 
 	// Initialize repository and service (dependency injection)

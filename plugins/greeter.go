@@ -15,12 +15,12 @@ type Greeter struct {
 
 // Implement the action interface
 func (g *Greeter) Execute(ctx *security_context.SecurityContext) error {
-	log.Println("Hello from the plugin")
+	log.Printf("Hello from the plugin, this is my config: %v\n", ctx)
 	return nil
 }
 
 func (g *Greeter) GetType() string {
-	return "Greeter"
+	return "greeter"
 }
 
 func (g *Greeter) GetName() string {
