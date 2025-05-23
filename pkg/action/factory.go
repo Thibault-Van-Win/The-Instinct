@@ -11,6 +11,7 @@ import (
 // ActionRegistry is a registry of action factories
 type ActionRegistry struct {
 	factories map[string]ActionFactory
+	clients []*plugin.Client
 }
 
 type ActionRegistryOption func(*ActionRegistry)
@@ -19,6 +20,7 @@ type ActionRegistryOption func(*ActionRegistry)
 type ActionFactory func(params map[string]any) (Action, error)
 
 // NewActionRegistry creates a new action registry
+// This newly created action registry needs to be closed
 func NewActionRegistry(opts ...ActionRegistryOption) *ActionRegistry {
 
 	instance := &ActionRegistry{
@@ -44,6 +46,12 @@ func (r *ActionRegistry) Create(config ActionConfig) (Action, error) {
 		return nil, fmt.Errorf("unknown action type: %s", config.Type)
 	}
 	return factory(config.Params)
+}
+
+func (r *ActionRegistry) Close() {
+	for _, c := range r.clients {
+		c.Kill()
+	}
 }
 
 // Register a set of standard actions included with the project
@@ -75,13 +83,15 @@ func WithStandardActions() ActionRegistryOption {
 	}
 }
 
-// TODO: connection lifetime should be managed here
 func (r *ActionRegistry) RegisterPlugins() {
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
 		Cmd:             exec.Command("./plugins/greeter"),
 	})
+
+	// Add the client so it's lifetime can be managed
+	r.clients = append(r.clients, client)
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
