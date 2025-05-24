@@ -54,8 +54,25 @@ func (r *ActionRegistry) Close() {
 	}
 }
 
-// Register a set of standard actions included with the project
-func (r *ActionRegistry) RegisterStandardActions() {
+func WithStandardActions() ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.registerStandardActions()
+	}
+}
+
+func WithPlugins() ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.registerPlugins()
+	}
+}
+
+func WithActionFactory(name string, factory ActionFactory) ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.Register(name, factory)
+	}
+}
+
+func (r *ActionRegistry) registerStandardActions() {
 	r.Register(ActionTypePrint, func(params map[string]any) (Action, error) {
 		return NewPrintAction(params)
 	})
@@ -77,55 +94,6 @@ func (r *ActionRegistry) RegisterStandardActions() {
 	})
 }
 
-func WithStandardActions() ActionRegistryOption {
-	return func(ar *ActionRegistry) {
-		ar.RegisterStandardActions()
-	}
-}
-
-func (r *ActionRegistry) RegisterPlugins() {
-	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig: handshakeConfig,
-		Plugins:         pluginMap,
-		Cmd:             exec.Command("./plugins/greeter"),
-	})
-
-	// Add the client so it's lifetime can be managed
-	r.clients = append(r.clients, client)
-
-	// Connect via RPC
-	rpcClient, err := client.Client()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Request the plugin
-	raw, err := rpcClient.Dispense("greeter")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	greeter := raw.(Action)
-	r.Register(
-		greeter.GetType(),
-		func(params map[string]any) (Action, error) {
-			return NewPluginActionDecorator(greeter, params)
-		},
-	)
-}
-
-func WithPlugins() ActionRegistryOption {
-	return func(ar *ActionRegistry) {
-		ar.RegisterPlugins()
-	}
-}
-
-func WithActionFactory(name string, factory ActionFactory) ActionRegistryOption {
-	return func(ar *ActionRegistry) {
-		ar.Register(name, factory)
-	}
-}
-
 var handshakeConfig = plugin.HandshakeConfig{
 	ProtocolVersion:  1,
 	MagicCookieKey:   "BASIC_PLUGIN",
@@ -135,4 +103,45 @@ var handshakeConfig = plugin.HandshakeConfig{
 // pluginMap is the map of plugins we can dispense.
 var pluginMap = map[string]plugin.Plugin{
 	"greeter": &ActionPlugin{},
+}
+
+func (r *ActionRegistry) registerPlugins() {
+	action, client, err := loadPlugin("greeter")
+	if err != nil {
+		log.Printf("Failed to load greeter plugin: %v", err)
+	}
+
+	// Add the client so it's lifetime can be managed
+	r.clients = append(r.clients, client)
+
+	r.Register(
+		action.GetType(),
+		func(params map[string]any) (Action, error) {
+			return NewPluginActionDecorator(action, params)
+		},
+	)
+}
+
+func loadPlugin(name string) (Action, *plugin.Client, error) {
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: handshakeConfig,
+		Plugins:         pluginMap,
+		Cmd:             exec.Command(fmt.Sprintf("./plugins/%s", name)),
+	})
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create rpc client for %s: %v", name, err)
+	}
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense(name)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to dispense plugin %s: %v", name, err)
+	}
+
+	action := raw.(Action)
+
+	return action, client, nil
 }
