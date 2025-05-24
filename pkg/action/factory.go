@@ -126,7 +126,7 @@ func loadPlugin(name string) (Action, *plugin.Client, error) {
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
-		Cmd:             exec.Command(fmt.Sprintf("./plugins/%s", name)),
+		Cmd:             exec.Command(fmt.Sprintf("./plugins/%s/%s", name, name)),
 	})
 
 	// Connect via RPC
