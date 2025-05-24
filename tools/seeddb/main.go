@@ -47,7 +47,10 @@ func main() {
 	// Create action registry
 	actionRegistry := action.NewActionRegistry(
 		action.WithStandardActions(),
+		action.WithPlugins(),
 	)
+
+	defer actionRegistry.Close()
 
 	// Initialize repository and service (dependency injection)
 	repository, err := factory.NewReflexRepository(&conf.DbConfig, ruleRegistry, actionRegistry)

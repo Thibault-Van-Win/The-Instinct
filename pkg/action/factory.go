@@ -1,10 +1,17 @@
 package action
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"os/exec"
+
+	"github.com/hashicorp/go-plugin"
+)
 
 // ActionRegistry is a registry of action factories
 type ActionRegistry struct {
 	factories map[string]ActionFactory
+	clients   []*plugin.Client
 }
 
 type ActionRegistryOption func(*ActionRegistry)
@@ -13,6 +20,7 @@ type ActionRegistryOption func(*ActionRegistry)
 type ActionFactory func(params map[string]any) (Action, error)
 
 // NewActionRegistry creates a new action registry
+// This newly created action registry needs to be closed
 func NewActionRegistry(opts ...ActionRegistryOption) *ActionRegistry {
 
 	instance := &ActionRegistry{
@@ -40,8 +48,31 @@ func (r *ActionRegistry) Create(config ActionConfig) (Action, error) {
 	return factory(config.Params)
 }
 
-// Register a set of standard actions included with the project
-func (r *ActionRegistry) RegisterStandardActions() {
+func (r *ActionRegistry) Close() {
+	for _, c := range r.clients {
+		c.Kill()
+	}
+}
+
+func WithStandardActions() ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.registerStandardActions()
+	}
+}
+
+func WithPlugins() ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.registerPlugins()
+	}
+}
+
+func WithActionFactory(name string, factory ActionFactory) ActionRegistryOption {
+	return func(ar *ActionRegistry) {
+		ar.Register(name, factory)
+	}
+}
+
+func (r *ActionRegistry) registerStandardActions() {
 	r.Register(ActionTypePrint, func(params map[string]any) (Action, error) {
 		return NewPrintAction(params)
 	})
@@ -63,14 +94,54 @@ func (r *ActionRegistry) RegisterStandardActions() {
 	})
 }
 
-func WithStandardActions() ActionRegistryOption {
-	return func(ar *ActionRegistry) {
-		ar.RegisterStandardActions()
-	}
+var handshakeConfig = plugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "BASIC_PLUGIN",
+	MagicCookieValue: "hello",
 }
 
-func WithActionFactory(name string, factory ActionFactory) ActionRegistryOption {
-	return func(ar *ActionRegistry) {
-		ar.Register(name, factory)
+// pluginMap is the map of plugins we can dispense.
+var pluginMap = map[string]plugin.Plugin{
+	"greeter": &ActionPlugin{},
+}
+
+func (r *ActionRegistry) registerPlugins() {
+	action, client, err := loadPlugin("greeter")
+	if err != nil {
+		log.Printf("Failed to load greeter plugin: %v", err)
 	}
+
+	// Add the client so it's lifetime can be managed
+	r.clients = append(r.clients, client)
+
+	r.Register(
+		action.GetType(),
+		func(params map[string]any) (Action, error) {
+			return NewPluginActionDecorator(action, params)
+		},
+	)
+}
+
+func loadPlugin(name string) (Action, *plugin.Client, error) {
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: handshakeConfig,
+		Plugins:         pluginMap,
+		Cmd:             exec.Command(fmt.Sprintf("./plugins/%s/%s", name, name)),
+	})
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create rpc client for %s: %v", name, err)
+	}
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense(name)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to dispense plugin %s: %v", name, err)
+	}
+
+	action := raw.(Action)
+
+	return action, client, nil
 }
