@@ -63,13 +63,16 @@
           name: Add IP to case
           message: "Adding IP to new case..."
 
-- name: greeter
+- name: The Hive tester
   rule: 
     type: cel
     params:
       expression: "true"
   action:
-    type: greeter
+    type: thehive
     params:
-      message: Hello
+      subaction: update
+      fields:
+        title: "Known threat"
+        status: FalsePositive
       

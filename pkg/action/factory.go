@@ -103,6 +103,7 @@ var handshakeConfig = plugin.HandshakeConfig{
 // pluginMap is the map of plugins we can dispense.
 var pluginMap = map[string]plugin.Plugin{
 	"greeter": &ActionPlugin{},
+	"thehive": &ActionPlugin{},
 }
 
 func (r *ActionRegistry) registerPlugins() {
@@ -112,6 +113,20 @@ func (r *ActionRegistry) registerPlugins() {
 	}
 
 	// Add the client so it's lifetime can be managed
+	r.clients = append(r.clients, client)
+
+	r.Register(
+		action.GetType(),
+		func(params map[string]any) (Action, error) {
+			return NewPluginActionDecorator(action, params)
+		},
+	)
+
+	action, client, err = loadPlugin("thehive")
+	if err != nil {
+		log.Printf("Failed to load thehive plugin: %v", err)
+	}
+
 	r.clients = append(r.clients, client)
 
 	r.Register(
