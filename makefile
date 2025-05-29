@@ -1,10 +1,15 @@
 PLUGIN_DIR := plugins
 
-# Find all plugin source files matching ./plugins/<name>/<name>.go
-PLUGIN_SRCS := $(wildcard $(PLUGIN_DIR)/*/*.go)
+# All Go files under plugins/*/
+ALL_GO_SRCS := $(wildcard $(PLUGIN_DIR)/*/*.go)
 
-# Extract plugin names
-PLUGIN_NAMES := $(basename $(notdir $(PLUGIN_SRCS)))
+# Only keep files where the filename matches the folder name
+PLUGIN_SRCS := $(shell \
+	for file in $(ALL_GO_SRCS); do \
+		dir=$$(basename $$(dirname $$file)); \
+		base=$$(basename $$file .go); \
+		if [ "$$dir" = "$$base" ]; then echo $$file; fi; \
+	done)
 
 # Substitute .go files for binaries
 PLUGIN_BINS := $(patsubst %.go, %, $(PLUGIN_SRCS))
@@ -15,9 +20,10 @@ all: build-plugins
 .PHONY: build-plugins
 build-plugins: $(PLUGIN_BINS)
 
-%: %.go
+%:
 	@echo "Building $@"
-	@go build -o $@ $<
+	@dir=$$(dirname $@); \
+	go build -o $@ $$dir/*.go
 
 .PHONY: clean
 clean:
@@ -25,3 +31,9 @@ clean:
 	@for bin in $(PLUGIN_BINS); do \
 		if [ -f $$bin ]; then rm -v $$bin; fi; \
 	done
+
+.PHONY: print-debug
+print-debug:
+	@echo "ALL_GO_SRCS = $(ALL_GO_SRCS)"
+	@echo "PLUGIN_SRCS = $(PLUGIN_SRCS)"
+	@echo "PLUGIN_BINS = $(PLUGIN_BINS)"

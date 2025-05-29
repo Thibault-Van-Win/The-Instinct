@@ -6,33 +6,30 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/go-plugin"
+	"github.com/sethvargo/go-envconfig"
 
 	"github.com/Thibault-Van-Win/The-Instinct/pkg/action"
-	"github.com/Thibault-Van-Win/The-Instinct/pkg/security_context"
 )
 
 type TheHive struct {
+	HiveUrl     string `env:"THE_HIVE_URL"`
+	HiveApiKey  string `env:"THE_HIVE_API_KEY"`
+	HiveSkipTls bool   `env:"THE_HIVE_SKIP_TLS"`
 }
 
-func (th *TheHive) Execute(ctx *security_context.SecurityContext) error {
-	cfg := ctx.Variables["config"].(map[string]any)
-	log.Printf("Hello from the TheHive plugin, here is my config %v", cfg)
-	return nil
-}
+func newFromEnv() (*TheHive, error) {
+	var th TheHive
 
-func (th *TheHive) GetType() string {
-	return "thehive"
-}
+	if err := envconfig.Process(context.Background(), &th); err != nil {
+		return nil, fmt.Errorf("failed to process env variables: %v", err)
+	}
 
-func (th *TheHive) GetName() string {
-	return "A plugin for some Hive instance"
-}
-
-func (th *TheHive) Validate() error {
-	return nil
+	return &th, nil
 }
 
 var handshakeConfig = plugin.HandshakeConfig{
@@ -42,7 +39,10 @@ var handshakeConfig = plugin.HandshakeConfig{
 }
 
 func main() {
-	instance := &TheHive{}
+	instance, err := newFromEnv()
+	if err != nil {
+		log.Fatalf("Failed to create thehive plugin from env: %v", err)
+	}
 
 	var pluginMap = map[string]plugin.Plugin{
 		"thehive": &action.ActionPlugin{Impl: instance},
@@ -50,6 +50,6 @@ func main() {
 
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: handshakeConfig,
-		Plugins: pluginMap,
+		Plugins:         pluginMap,
 	})
 }
