@@ -74,5 +74,5 @@
       subaction: update
       fields:
         title: "Known threat"
-        status: FalsePositive
+        status: "FalsePositive"
       

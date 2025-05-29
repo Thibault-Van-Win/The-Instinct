@@ -5,6 +5,7 @@ go 1.22.3
 require github.com/google/cel-go v0.25.0
 
 require (
+	github.com/Thibault-Van-Win/thehive4go v1.0.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect

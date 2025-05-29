@@ -1,6 +1,16 @@
 # cel.dev/expr v0.23.1
 ## explicit; go 1.22.0
 cel.dev/expr
+# github.com/Thibault-Van-Win/thehive4go v1.0.0
+## explicit; go 1.22.3
+github.com/Thibault-Van-Win/thehive4go
+github.com/Thibault-Van-Win/thehive4go/alert
+github.com/Thibault-Van-Win/thehive4go/case
+github.com/Thibault-Van-Win/thehive4go/observable
+github.com/Thibault-Van-Win/thehive4go/procedure
+github.com/Thibault-Van-Win/thehive4go/query
+github.com/Thibault-Van-Win/thehive4go/utils
+github.com/Thibault-Van-Win/thehive4go/utils/tlp
 # github.com/antlr4-go/antlr/v4 v4.13.0
 ## explicit; go 1.20
 github.com/antlr4-go/antlr/v4

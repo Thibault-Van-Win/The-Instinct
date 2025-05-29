@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Thibault-Van-Win/thehive4go"
 	"github.com/hashicorp/go-plugin"
 	"github.com/sethvargo/go-envconfig"
 
@@ -20,6 +21,8 @@ type TheHive struct {
 	HiveUrl     string `env:"THE_HIVE_URL"`
 	HiveApiKey  string `env:"THE_HIVE_API_KEY"`
 	HiveSkipTls bool   `env:"THE_HIVE_SKIP_TLS"`
+
+	apiClient *thehive4go.APIClient
 }
 
 func newFromEnv() (*TheHive, error) {
@@ -28,6 +31,12 @@ func newFromEnv() (*TheHive, error) {
 	if err := envconfig.Process(context.Background(), &th); err != nil {
 		return nil, fmt.Errorf("failed to process env variables: %v", err)
 	}
+
+	th.apiClient = thehive4go.NewAPIClient(thehive4go.Config{
+		SkipTLSVerification: th.HiveSkipTls,
+		URL: th.HiveUrl,
+		APIKey: th.HiveApiKey,
+	})
 
 	return &th, nil
 }
